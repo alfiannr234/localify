@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox fx:id="miniRoot" prefWidth="340" spacing="0" styleClass="mini-player-root"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.localify.controller.MiniPlayerController">
+
+    <!-- Compact top card (drag anywhere outside buttons/sliders to reposition) -->
+    <VBox spacing="5">
+        <padding>
+            <Insets top="8" right="10" bottom="8" left="10"/>
+        </padding>
+
+        <!-- Row 1: Cover art, Title & Artist, Track Options (...), Full-Screen Player button -->
+        <HBox alignment="CENTER_LEFT" spacing="8">
+            <StackPane fx:id="miniCoverFrame" prefWidth="38" prefHeight="38"
+                       minWidth="38" minHeight="38" styleClass="cover-frame">
+                <FontIcon fx:id="miniCoverPlaceholder" iconLiteral="mdi2m-music-note"
+                          styleClass="cover-placeholder-icon"/>
+                <ImageView fx:id="miniCoverImage" fitWidth="38" fitHeight="38" preserveRatio="false"/>
+            </StackPane>
+
+            <VBox alignment="CENTER_LEFT" spacing="1" minWidth="0" HBox.hgrow="ALWAYS">
+                <Label fx:id="miniTitleLabel" text="No track playing" textOverrun="ELLIPSIS"
+                       maxWidth="Infinity" styleClass="mini-title"/>
+                <Label fx:id="miniArtistLabel" text="Open Full-Screen Player to pick a song"
+                       textOverrun="ELLIPSIS" maxWidth="Infinity" styleClass="mini-artist"/>
+            </VBox>
+
+            <Button fx:id="miniOptionsButton" onAction="#handleMiniOptions"
+                    accessibleText="Track options" styleClass="icon-button">
+                <tooltip><Tooltip text="Track options"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2d-dots-horizontal"/></graphic>
+            </Button>
+
+            <Button fx:id="miniExpandButton" onAction="#handleReturnFullScreen"
+                    accessibleText="Return to Full-Screen Player" styleClass="icon-button">
+                <tooltip><Tooltip text="Full-Screen Player (Esc / Ctrl+M)"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2a-arrow-expand"/></graphic>
+            </Button>
+        </HBox>
+
+        <!-- Row 2: Interactive Seek Slider with Elapsed & Remaining Time -->
+        <HBox alignment="CENTER" spacing="6">
+            <Label fx:id="miniElapsedLabel" text="0:00" minWidth="28" alignment="CENTER_RIGHT"
+                   styleClass="time-label"/>
+            <Slider fx:id="miniSeekSlider" min="0" max="100" value="0" HBox.hgrow="ALWAYS"
+                    accessibleText="Playback position" styleClass="player-slider"/>
+            <Label fx:id="miniRemainingLabel" text="-0:00" minWidth="32"
+                   styleClass="time-label"/>
+        </HBox>
+
+        <!-- Row 3: Volume, Transport (Prev, Rewind -10s, Play/Pause, Forward +10s, Next), Lyrics & Playing Next toggles -->
+        <HBox alignment="CENTER" spacing="3">
+            <Button fx:id="miniMuteButton" onAction="#handleMiniMute"
+                    accessibleText="Mute" styleClass="icon-button">
+                <tooltip><Tooltip text="Mute / Unmute"/></tooltip>
+                <graphic><FontIcon fx:id="miniVolumeIcon" iconLiteral="mdi2v-volume-high"/></graphic>
+            </Button>
+
+            <Slider fx:id="miniVolumeSlider" prefWidth="48" minWidth="40"
+                    accessibleText="Volume" styleClass="player-slider"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button fx:id="miniPrevButton" onAction="#handleMiniPrevious"
+                    accessibleText="Previous track" styleClass="icon-button">
+                <tooltip><Tooltip text="Previous track"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2s-skip-previous"/></graphic>
+            </Button>
+
+            <Button fx:id="miniRewindButton" onAction="#handleMiniRewind"
+                    accessibleText="Rewind 10 seconds" styleClass="icon-button">
+                <tooltip><Tooltip text="Rewind 10s"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2r-rewind-10"/></graphic>
+            </Button>
+
+            <Button fx:id="miniPlayPauseButton" onAction="#handleMiniPlayPause"
+                    accessibleText="Play" styleClass="mini-play-button">
+                <tooltip><Tooltip text="Play / Pause (Space)"/></tooltip>
+                <graphic><FontIcon fx:id="miniPlayPauseIcon" iconLiteral="mdi2p-play"/></graphic>
+            </Button>
+
+            <Button fx:id="miniForwardButton" onAction="#handleMiniForward"
+                    accessibleText="Fast-forward 10 seconds" styleClass="icon-button">
+                <tooltip><Tooltip text="Forward 10s"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2f-fast-forward-10"/></graphic>
+            </Button>
+
+            <Button fx:id="miniNextButton" onAction="#handleMiniNext"
+                    accessibleText="Next track" styleClass="icon-button">
+                <tooltip><Tooltip text="Next track"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2s-skip-next"/></graphic>
+            </Button>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <ToggleButton fx:id="miniLyricsToggle" accessibleText="Toggle synchronized lyrics"
+                          styleClass="icon-toggle">
+                <tooltip><Tooltip text="Lyrics"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2t-text-box-outline"/></graphic>
+            </ToggleButton>
+
+            <ToggleButton fx:id="miniQueueToggle" accessibleText="Toggle Playing Next list"
+                          styleClass="icon-toggle">
+                <tooltip><Tooltip text="Playing Next"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2p-playlist-play"/></graphic>
+            </ToggleButton>
+        </HBox>
+    </VBox>
+
+    <!-- Expandable Bottom Drawer: Synced Lyrics or Playing Next -->
+    <StackPane fx:id="miniDrawerContainer" VBox.vgrow="ALWAYS"
+               visible="false" managed="false" styleClass="mini-drawer">
+        <padding>
+            <Insets top="6" right="8" bottom="8" left="8"/>
+        </padding>
+
+        <ScrollPane fx:id="miniLyricsScrollPane" fitToWidth="true" hbarPolicy="NEVER"
+                    styleClass="lyrics-scroll">
+            <VBox fx:id="miniLyricsBox" spacing="4"/>
+        </ScrollPane>
+
+        <Label fx:id="miniLyricsEmptyLabel" wrapText="true" textAlignment="CENTER"
+               styleClass="state-detail"/>
+
+        <VBox fx:id="miniQueuePane" spacing="6" visible="false" managed="false">
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Playing next" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="section-caption"/>
+                <Button fx:id="miniClearQueueButton" text="Clear" onAction="#handleMiniClearQueue"
+                        accessibleText="Clear Playing Next list" styleClass="secondary-button"/>
+            </HBox>
+            <ListView fx:id="miniUpcomingList" VBox.vgrow="ALWAYS"
+                      accessibleText="Playing Next list" styleClass="queue-list"/>
+            <Label fx:id="miniQueueEmptyLabel"
+                   text="No upcoming songs in queue."
+                   wrapText="true" textAlignment="CENTER" styleClass="state-detail"/>
+        </VBox>
+    </StackPane>
+</VBox>

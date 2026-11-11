@@ -1,0 +1,785 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane fx:id="windowRootStack" styleClass="app-root"
+           xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.localify.controller.MainController">
+
+    <BorderPane fx:id="rootPane" styleClass="app-root">
+
+        <!-- Top status & playback error banners -->
+        <top>
+            <VBox>
+                <HBox fx:id="playbackErrorBanner" alignment="CENTER_LEFT" spacing="10" styleClass="error-banner">
+                    <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="18" iconColor="#FFB4AB"/>
+                    <Label fx:id="playbackErrorLabel" wrapText="true" styleClass="error-banner-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button fx:id="dismissErrorButton" text="Dismiss" onAction="#handleDismissPlaybackError"
+                            accessibleText="Dismiss playback error" styleClass="secondary-button"/>
+                </HBox>
+                <HBox fx:id="statusToastBar" alignment="CENTER_LEFT" spacing="8" styleClass="toast-bar">
+                    <FontIcon iconLiteral="mdi2c-check-circle-outline" iconSize="15" iconColor="#F36B21"/>
+                    <Label fx:id="statusToastLabel" styleClass="toast-label"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <!-- Left Navigation & Playlist Sidebar -->
+        <left>
+            <VBox prefWidth="236" minWidth="210" spacing="14" styleClass="sidebar-pane">
+                <padding>
+                    <Insets top="18" right="14" bottom="14" left="14"/>
+                </padding>
+
+                <!-- Wordmark -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <ImageView fitWidth="32" fitHeight="32" preserveRatio="true">
+                        <image><Image url="@../images/app-icon-64.png"/></image>
+                    </ImageView>
+                    <Label text="Localify" styleClass="brand-wordmark"/>
+                </HBox>
+
+                <!-- Search library above Library (moved from center header) -->
+                <HBox alignment="CENTER_LEFT" spacing="6" maxWidth="Infinity" styleClass="search-box">
+                    <FontIcon iconLiteral="mdi2m-magnify" iconSize="15" iconColor="#B3B3B3"/>
+                    <TextField fx:id="searchField" promptText="Filter songs (Ctrl+F)"
+                               accessibleText="Filter songs by title, artist, or album"
+                               HBox.hgrow="ALWAYS" styleClass="search-input"/>
+                    <Button fx:id="clearSearchButton" onAction="#handleClearSearch"
+                            accessibleText="Clear search query" styleClass="icon-button-subtle">
+                        <tooltip><Tooltip text="Clear search"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2c-close" styleClass="small-icon"/></graphic>
+                    </Button>
+                </HBox>
+
+                <!-- Primary library item (Clean style matching Image 2: No count badge, no music folder) -->
+                <VBox spacing="6">
+                    <Label text="Library" styleClass="section-caption"/>
+                    <Button fx:id="allSongsNavButton" onAction="#handleAllSongs" maxWidth="Infinity"
+                            accessibleText="All songs" styleClass="nav-button, nav-button-active">
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="10" maxWidth="Infinity">
+                                <FontIcon iconLiteral="mdi2m-music-box-multiple-outline" styleClass="sidebar-item-icon"/>
+                                <Label text="All songs" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            </HBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="playlistsNavButton" onAction="#handleOpenPlaylistsView" maxWidth="Infinity"
+                            accessibleText="Playlists and Your Library" styleClass="nav-button">
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="10" maxWidth="Infinity">
+                                <FontIcon iconLiteral="mdi2p-playlist-music" styleClass="sidebar-item-icon"/>
+                                <Label text="Playlists" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            </HBox>
+                        </graphic>
+                    </Button>
+
+                    <!-- Active Artist / Album filter chip -->
+                    <HBox fx:id="activeFilterBox" alignment="CENTER_LEFT" spacing="6"
+                          visible="false" managed="false" styleClass="filter-chip-box">
+                        <Label fx:id="activeFilterLabel" textOverrun="ELLIPSIS" minWidth="0"
+                               HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="filter-chip-label"/>
+                        <Button fx:id="clearFilterButton" onAction="#handleClearFilter"
+                                accessibleText="Clear artist or album filter" styleClass="icon-button-subtle">
+                            <tooltip><Tooltip text="Clear filter"/></tooltip>
+                            <graphic><FontIcon iconLiteral="mdi2c-close" styleClass="small-icon"/></graphic>
+                        </Button>
+                    </HBox>
+                </VBox>
+
+                <!-- Spacer to push Settings to the bottom -->
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- Hidden backing controls for backwards compatibility & smoke runner -->
+                <ListView fx:id="playlistListView" visible="false" managed="false"/>
+                <Label fx:id="playlistEmptyLabel" visible="false" managed="false"/>
+                <Label fx:id="allSongsCountLabel" visible="false" managed="false"/>
+                <Label fx:id="folderPathLabel" visible="false" managed="false"/>
+                <Button fx:id="chooseFolderButton" visible="false" managed="false"/>
+                <Button fx:id="rescanButton" visible="false" managed="false"/>
+                <Button fx:id="newPlaylistButton" visible="false" managed="false"/>
+
+                <!-- Settings -->
+                <Button fx:id="settingsButton" text="Settings" onAction="#handleOpenSettings"
+                        maxWidth="Infinity" accessibleText="Open Localify Settings" styleClass="secondary-button">
+                    <graphic><FontIcon iconLiteral="mdi2c-cog-outline" iconSize="15"/></graphic>
+                </Button>
+            </VBox>
+        </left>
+
+        <!-- Center Stack: Library View + In-Page Settings View (Matching Image 2) -->
+        <center>
+            <StackPane>
+                <!-- Library View -->
+                <VBox fx:id="libraryViewPane" spacing="14" styleClass="center-pane">
+                <padding>
+                    <Insets top="18" right="18" bottom="10" left="18"/>
+                </padding>
+
+                <!-- Top Row: Music Title + Navigation Tabs (Songs, Albums, Artists) + Add Folder (Image 2) -->
+                <HBox alignment="CENTER_LEFT" spacing="14">
+                    <Button fx:id="playlistBackButton" text="Back" onAction="#handleOpenPlaylistsView"
+                            visible="false" managed="false" styleClass="secondary-button" accessibleText="Back to playlists">
+                        <graphic><FontIcon iconLiteral="mdi2a-arrow-left" iconSize="16"/></graphic>
+                    </Button>
+                    <Label fx:id="viewTitleLabel" text="Music" minWidth="-Infinity" styleClass="view-title-main"/>
+
+                    <!-- Navigation Tabs: Songs, Albums, Artists (Matching Image 2) -->
+                    <HBox fx:id="libraryTabsBox" alignment="CENTER_LEFT" spacing="8" minWidth="-Infinity">
+                        <Button fx:id="tabSongsButton" text="Songs" onAction="#handleTabSongs"
+                                minWidth="-Infinity" styleClass="nav-tab, nav-tab-active" accessibleText="View songs"/>
+                        <Button fx:id="tabAlbumsButton" text="Albums" onAction="#handleTabAlbums"
+                                minWidth="-Infinity" styleClass="nav-tab" accessibleText="View albums"/>
+                        <Button fx:id="tabArtistsButton" text="Artists" onAction="#handleTabArtists"
+                                minWidth="-Infinity" styleClass="nav-tab" accessibleText="View artists"/>
+                    </HBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <!-- Add Folder Button (Matching Image 2) -->
+                    <Button fx:id="addFolderHeaderButton" text="Add folder" onAction="#handleChooseFolder"
+                            minWidth="-Infinity" styleClass="secondary-button" accessibleText="Add music folder">
+                        <graphic><FontIcon iconLiteral="mdi2f-folder-plus-outline" iconSize="15"/></graphic>
+                    </Button>
+                </HBox>
+
+                <!-- Action & Filter Bar (Matching Image 2) -->
+                <StackPane alignment="CENTER_LEFT">
+                    <!-- Default Toolbar (Orange Shuffle and play button matching Image 2) -->
+                    <HBox fx:id="defaultToolbar" alignment="CENTER_LEFT" spacing="12">
+                        <Button fx:id="shufflePlayButton" text="Shuffle and play" onAction="#handleShuffleAndPlay"
+                                accessibleText="Shuffle and play current songs" styleClass="shuffle-play-button">
+                            <graphic><FontIcon iconLiteral="mdi2s-shuffle-variant" iconSize="16" iconColor="#0A0A0A"/></graphic>
+                        </Button>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <!-- Sort by Dropdown -->
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Label text="Sort by:" styleClass="filter-menu-label"/>
+                            <MenuButton fx:id="sortMenuButton" text="A - Z"
+                                        accessibleText="Sort by" styleClass="filter-menu-button"/>
+                        </HBox>
+
+                        <!-- Genre Filter Dropdown -->
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Label text="Genre:" styleClass="filter-menu-label"/>
+                            <MenuButton fx:id="genreMenuButton" text="All genres"
+                                        accessibleText="Filter by genre" styleClass="filter-menu-button"/>
+                        </HBox>
+                    </HBox>
+
+                    <!-- Multi-selection Action Bar -->
+                    <HBox fx:id="selectionToolbar" alignment="CENTER_LEFT" spacing="10" visible="false" managed="false" styleClass="selection-action-bar">
+                        <CheckBox fx:id="selectAllCheckBox" onAction="#handleSelectAllToggle"
+                                  accessibleText="Select or deselect all displayed songs" styleClass="selection-checkbox"/>
+                        <Label fx:id="selectionCountLabel" text="0 songs selected" styleClass="selection-count-text"/>
+                        <Label text="•" styleClass="selection-bullet"/>
+                        <Button fx:id="clearSelectionButton" text="Clear" onAction="#handleClearSelection"
+                                accessibleText="Clear song selection" styleClass="selection-clear-button"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button fx:id="selectionPlayButton" text="Play" onAction="#handleSelectionPlay"
+                                accessibleText="Play selected songs" styleClass="selection-primary-play-button">
+                            <graphic><FontIcon iconLiteral="mdi2p-play" iconSize="16" iconColor="#0A0A0A"/></graphic>
+                        </Button>
+
+                        <Button fx:id="selectionPlayNextButton" text="Play next" onAction="#handleSelectionPlayNext"
+                                accessibleText="Queue selected songs next" styleClass="selection-secondary-button">
+                            <graphic><FontIcon iconLiteral="mdi2p-playlist-play" iconSize="16"/></graphic>
+                        </Button>
+
+                        <MenuButton fx:id="selectionAddToButton" text="Add to"
+                                    accessibleText="Add selected songs to playlist" styleClass="selection-secondary-button">
+                            <graphic><FontIcon iconLiteral="mdi2p-plus" iconSize="16"/></graphic>
+                        </MenuButton>
+                    </HBox>
+                </StackPane>
+
+                <!-- Multi-state content area: Grouped Card List, Loading, Empty, Error -->
+                <StackPane fx:id="contentStack" VBox.vgrow="ALWAYS" styleClass="content-stack-pane">
+                    <ListView fx:id="songListView" accessibleText="Songs list" styleClass="song-card-list" focusTraversable="false"/>
+
+                    <!-- Section Jump Alphabet Picker Overlay -->
+                    <StackPane fx:id="sectionJumpOverlay" visible="false" managed="false" styleClass="section-jump-overlay">
+                        <GridPane fx:id="sectionJumpGrid" alignment="CENTER" styleClass="section-jump-grid"/>
+                    </StackPane>
+
+                    <!-- Loading State -->
+                    <VBox fx:id="loadingStateBox" alignment="CENTER" spacing="12"
+                          visible="false" managed="false" styleClass="state-card">
+                        <FontIcon iconLiteral="mdi2f-folder-sync-outline" styleClass="state-icon"/>
+                        <Label text="Scanning music library" styleClass="state-title"/>
+                        <ProgressBar fx:id="scanProgressBar" prefWidth="300"/>
+                        <Label fx:id="loadingMessageLabel" wrapText="true" textAlignment="CENTER" styleClass="state-detail"/>
+                    </VBox>
+
+                    <!-- Empty State -->
+                    <VBox fx:id="emptyStateBox" alignment="CENTER" spacing="12"
+                          visible="false" managed="false" styleClass="state-card">
+                        <FontIcon iconLiteral="mdi2m-music-note-off-outline" styleClass="state-icon"/>
+                        <Label fx:id="emptyTitleLabel" text="No audio files in this folder" styleClass="state-title"/>
+                        <Label fx:id="emptyDetailLabel" wrapText="true" textAlignment="CENTER" styleClass="state-detail"/>
+                        <HBox alignment="CENTER" spacing="10">
+                            <Button fx:id="emptyPrimaryActionButton" text="Choose folder" styleClass="accent-button"/>
+                            <Button fx:id="emptySecondaryActionButton" text="Rescan folder" styleClass="secondary-button"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Error State -->
+                    <VBox fx:id="errorStateBox" alignment="CENTER" spacing="12"
+                          visible="false" managed="false" styleClass="state-card">
+                        <FontIcon iconLiteral="mdi2a-alert-circle-outline" styleClass="state-icon"/>
+                        <Label fx:id="errorTitleLabel" text="Could not scan folder" styleClass="state-title"/>
+                        <Label fx:id="errorDetailLabel" wrapText="true" textAlignment="CENTER" styleClass="state-detail"/>
+                        <Button fx:id="errorActionButton" text="Try again" styleClass="accent-button"/>
+                    </VBox>
+                </StackPane>
+            </VBox>
+
+            <!-- Playlists / Your Library View (Matching Gambar 2 - MoLow / Spotify style) -->
+            <VBox fx:id="playlistsViewPane" spacing="16" visible="false" managed="false" styleClass="center-pane">
+                <padding>
+                    <Insets top="18" right="24" bottom="16" left="24"/>
+                </padding>
+
+                <!-- Header Row: Title ("Your Library") + Add Button (Matching Gambar 2) -->
+                <HBox alignment="CENTER_LEFT" spacing="16">
+                    <Label text="Your Library" styleClass="view-title-main"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="addPlaylistHeaderButton" text="+ Add" onAction="#handleNewPlaylist"
+                            accessibleText="Create new playlist" styleClass="accent-button">
+                        <graphic><FontIcon iconLiteral="mdi2p-plus" iconSize="16" iconColor="#0A0A0A"/></graphic>
+                    </Button>
+                </HBox>
+
+                <!-- Filter Pills Row: All, Playlists, Albums, Artists + Sort Dropdown (Matching Gambar 2) -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <HBox fx:id="libraryFilterPillsBox" alignment="CENTER_LEFT" spacing="8">
+                        <Button fx:id="pillAllButton" text="All" onAction="#handlePillAll" styleClass="pill-button, pill-button-active"/>
+                        <Button fx:id="pillPlaylistsButton" text="Playlists" onAction="#handlePillPlaylists" styleClass="pill-button"/>
+                        <Button fx:id="pillAlbumsButton" text="Albums" onAction="#handlePillAlbums" styleClass="pill-button"/>
+                        <Button fx:id="pillArtistsButton" text="Artists" onAction="#handlePillArtists" styleClass="pill-button"/>
+                    </HBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <HBox alignment="CENTER_LEFT" spacing="6">
+                        <Label text="Sort by:" styleClass="filter-menu-label"/>
+                        <MenuButton fx:id="libraryGridSortButton" text="Recently added" styleClass="filter-menu-button"/>
+                    </HBox>
+                </HBox>
+
+                <!-- Empty Playlists Prompt -->
+                <VBox fx:id="playlistsEmptyPromptBox" alignment="CENTER" spacing="14" visible="false" managed="false" styleClass="state-card">
+                    <FontIcon iconLiteral="mdi2p-playlist-music-outline" styleClass="state-icon"/>
+                    <Label text="No playlists yet" styleClass="state-title"/>
+                    <Label text="Create your first playlist to organize your favorite songs." styleClass="state-detail"/>
+                    <Button text="Create playlist" onAction="#handleNewPlaylist" styleClass="accent-button">
+                        <graphic><FontIcon iconLiteral="mdi2p-plus" iconSize="16" iconColor="#0A0A0A"/></graphic>
+                    </Button>
+                </VBox>
+
+                <!-- Card Grid ScrollPane -->
+                <ScrollPane fx:id="libraryGridScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS" styleClass="library-grid-scroll">
+                    <FlowPane fx:id="libraryGridFlowPane" hgap="18" vgap="22" styleClass="library-grid-pane"/>
+                </ScrollPane>
+            </VBox>
+
+            <!-- Settings View (Windows 11 Media Player style matching Image 2) -->
+            <ScrollPane fx:id="settingsViewPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                        visible="false" managed="false" styleClass="settings-scroll-pane">
+                <VBox spacing="20" styleClass="settings-container">
+                    <padding>
+                        <Insets top="24" right="30" bottom="32" left="30"/>
+                    </padding>
+
+                    <!-- Header: Back Button + Title -->
+                    <HBox alignment="CENTER_LEFT" spacing="16">
+                        <Button fx:id="settingsBackButton" text="Back" onAction="#handleCloseSettings"
+                                accessibleText="Back to music library" styleClass="secondary-button">
+                            <graphic><FontIcon iconLiteral="mdi2a-arrow-left" iconSize="16"/></graphic>
+                        </Button>
+                        <Label text="Settings" styleClass="settings-header-title"/>
+                    </HBox>
+
+                    <!-- Libraries Section -->
+                    <VBox spacing="8" styleClass="settings-section">
+                        <Label text="Libraries" styleClass="settings-section-title"/>
+
+                        <!-- Music library locations -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2f-folder-music-outline" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Music library locations" styleClass="settings-card-title"/>
+                                <Label fx:id="settingsMusicFolderLabel" text="C:\Users\...\Music" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <Button text="Add folder" onAction="#handleChooseFolder"
+                                    accessibleText="Add or switch music folder" styleClass="secondary-button">
+                                <graphic><FontIcon iconLiteral="mdi2f-folder-plus-outline" iconSize="15"/></graphic>
+                            </Button>
+                        </HBox>
+
+                        <!-- Refresh libraries -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2f-folder-sync-outline" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Refresh libraries" styleClass="settings-card-title"/>
+                                <Label text="Rescan library for new songs, tag changes, and lyrics" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <Button text="Refresh" onAction="#handleRescanLibrary"
+                                    accessibleText="Rescan music library" styleClass="secondary-button">
+                                <graphic><FontIcon iconLiteral="mdi2r-refresh" iconSize="15"/></graphic>
+                            </Button>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Personalization Section -->
+                    <VBox spacing="8" styleClass="settings-section">
+                        <Label text="Personalization" styleClass="settings-section-title"/>
+
+                        <!-- App theme -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2p-pencil-outline" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="App theme" styleClass="settings-card-title"/>
+                                <Label text="Select application color scheme appearance" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <MenuButton fx:id="settingsThemeMenu" text="Dark (Default)" accessibleText="Choose app theme" styleClass="filter-menu-button"/>
+                        </HBox>
+
+                        <!-- Accent color -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2m-music-circle" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Accent color" styleClass="settings-card-title"/>
+                                <Label text="Choose highlight color for playback button and controls" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <MenuButton fx:id="settingsAccentMenu" text="Zest (Orange)" accessibleText="Choose accent color" styleClass="filter-menu-button"/>
+                        </HBox>
+
+                        <!-- Lyrics Timing Offset -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2s-sync" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Sinkronisasi lirik (Timing Offset)" styleClass="settings-card-title"/>
+                                <Label text="Atur ketepatan waktu lirik. Nilai (+) membuat lirik muncul lebih cepat jika vokal mendahului teks" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <HBox alignment="CENTER_RIGHT" spacing="6">
+                                <Button text="-0.5s" onAction="#handleNudgeLyricsOffsetMinusLarge"
+                                        accessibleText="Kurangi offset 0.5 detik" styleClass="secondary-button"/>
+                                <Button text="-0.2s" onAction="#handleNudgeLyricsOffsetMinus"
+                                        accessibleText="Kurangi offset 0.2 detik" styleClass="secondary-button"/>
+                                <Label fx:id="settingsLyricsOffsetLabel" text="+0.3s" styleClass="count-pill"/>
+                                <Button text="+0.2s" onAction="#handleNudgeLyricsOffsetPlus"
+                                        accessibleText="Tambah offset 0.2 detik" styleClass="secondary-button"/>
+                                <Button text="+0.5s" onAction="#handleNudgeLyricsOffsetPlusLarge"
+                                        accessibleText="Tambah offset 0.5 detik" styleClass="secondary-button"/>
+                                <Button text="Reset (0s)" onAction="#handleResetLyricsOffset"
+                                        accessibleText="Reset offset lirik" styleClass="secondary-button"/>
+                            </HBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Integrations Section -->
+                    <VBox spacing="8" styleClass="settings-section">
+                        <Label text="Integrations" styleClass="settings-section-title"/>
+
+                        <!-- Discord RPC Toggle -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2a-account-music" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Discord Rich Presence (RPC)" styleClass="settings-card-title"/>
+                                <Label fx:id="settingsDiscordStatusLabel" text="Status: Disabled" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <CheckBox fx:id="settingsDiscordCheckBox" text="Enabled" accessibleText="Toggle Discord Rich Presence" styleClass="settings-checkbox"/>
+                        </HBox>
+
+                        <!-- Discord Client ID (Hidden: Uses official DEFAULT_CLIENT_ID) -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card" visible="false" managed="false">
+                            <FontIcon iconLiteral="mdi2i-information-outline" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Discord Application Client ID" styleClass="settings-card-title"/>
+                                <Label text="Custom Discord Developer Application ID" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <HBox alignment="CENTER_RIGHT" spacing="8">
+                                <TextField fx:id="settingsDiscordClientIdField" prefWidth="200" promptText="1570070424627191808" styleClass="search-input"/>
+                                <Button text="Reset" onAction="#handleResetDiscordClientId" accessibleText="Reset client ID" styleClass="secondary-button"/>
+                            </HBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- About Section -->
+                    <VBox spacing="8" styleClass="settings-section">
+                        <Label text="About" styleClass="settings-section-title"/>
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <ImageView fitWidth="36" fitHeight="36" preserveRatio="true">
+                                <image><Image url="@../images/app-icon-64.png"/></image>
+                            </ImageView>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Localify 1.0" styleClass="settings-card-title"/>
+                                <Label text="Modern local audio player with synchronized lyrics, Discord RPC, and mini player" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <Label text="Up to date" styleClass="count-pill"/>
+                        </HBox>
+
+                        <!-- In-place update card -->
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
+                            <FontIcon iconLiteral="mdi2f-folder-sync-outline" iconSize="22" styleClass="settings-card-icon"/>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label text="Software updates &amp; hot-swap" styleClass="settings-card-title"/>
+                                <Label text="Update versi Localify (.jar atau installer .exe) tanpa install ulang atau kehilangan data" styleClass="settings-card-subtitle"/>
+                            </VBox>
+                            <Button text="Pasang Update" onAction="#handleApplyAppUpdate"
+                                    accessibleText="Terapkan file update JAR atau EXE" styleClass="secondary-button">
+                                <graphic><FontIcon iconLiteral="mdi2f-folder-open-outline" iconSize="15"/></graphic>
+                            </Button>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+
+        <!-- Right Lyrics & Queue Drawer -->
+        <right>
+            <VBox fx:id="rightDrawer" prefWidth="320" minWidth="260" spacing="12" styleClass="right-drawer" visible="false" managed="false">
+                <padding>
+                    <Insets top="18" right="14" bottom="10" left="14"/>
+                </padding>
+
+                <!-- Header: Tab buttons (Lyrics & Playing Next) + Reload lyrics -->
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <ToggleButton fx:id="lyricsTabButton" text="Lyrics" selected="true"
+                                  accessibleText="Show lyrics tab" styleClass="tab-toggle"/>
+                    <ToggleButton fx:id="queueTabButton" text="Playing next"
+                                  accessibleText="Show playing queue tab" styleClass="tab-toggle"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="reloadLyricsButton" onAction="#handleReloadLyrics"
+                            accessibleText="Reload lyrics from disk" styleClass="icon-button-subtle">
+                        <tooltip><Tooltip text="Reload lyrics from disk"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2r-refresh" iconSize="15" iconColor="#B3B3B3"/></graphic>
+                    </Button>
+                </HBox>
+
+                <!-- Sub-views: Lyrics Container OR Queue Container -->
+                <StackPane VBox.vgrow="ALWAYS">
+                    <!-- Lyrics View -->
+                    <ScrollPane fx:id="lyricsScrollPane" fitToWidth="true" hbarPolicy="NEVER"
+                                vbarPolicy="AS_NEEDED" styleClass="lyrics-scroll">
+                        <VBox fx:id="lyricsContainer" spacing="14" styleClass="lyrics-container"/>
+                    </ScrollPane>
+
+                    <VBox fx:id="lyricsEmptyBox" alignment="CENTER" spacing="10" styleClass="empty-lyrics-box">
+                        <FontIcon iconLiteral="mdi2t-text-box-search-outline" styleClass="state-icon"/>
+                        <Label fx:id="lyricsEmptyLabel" wrapText="true" textAlignment="CENTER" styleClass="state-detail"/>
+                    </VBox>
+
+                    <!-- Queue View -->
+                    <VBox fx:id="queuePane" spacing="10" visible="false" managed="false">
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Label text="Now playing" styleClass="section-caption"/>
+                        </HBox>
+                        <Label fx:id="queueNowPlayingLabel" textOverrun="ELLIPSIS" styleClass="now-playing-title"/>
+
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Label text="Up next" styleClass="section-caption" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button fx:id="clearQueueButton" text="Clear" onAction="#handleClearQueue"
+                                    accessibleText="Clear play queue" styleClass="secondary-button"/>
+                        </HBox>
+
+                        <ListView fx:id="upcomingListView" VBox.vgrow="ALWAYS"
+                                  accessibleText="Play queue" styleClass="queue-list"/>
+
+                        <VBox fx:id="queueEmptyBox" alignment="CENTER" spacing="10"
+                              visible="false" managed="false" VBox.vgrow="ALWAYS" styleClass="empty-queue-box">
+                            <FontIcon iconLiteral="mdi2p-playlist-music-outline" styleClass="state-icon"/>
+                            <Label text="No upcoming tracks queued. Right-click a song and pick Play next or Add to -> Play queue."
+                                   wrapText="true" textAlignment="CENTER" styleClass="state-detail"/>
+                        </VBox>
+                    </VBox>
+                </StackPane>
+            </VBox>
+        </right>
+
+        <!-- Bottom Now Playing Transport Bar -->
+        <bottom>
+            <HBox alignment="CENTER" spacing="16" prefHeight="88" styleClass="player-bar">
+                <padding>
+                    <Insets top="10" right="18" bottom="10" left="18"/>
+                </padding>
+
+                <!-- Left: Cover Art + Active Song Info (Image 5: Click to expand to Image 4, 3-dots removed!) -->
+                <HBox fx:id="nowPlayingCardBox" alignment="CENTER_LEFT" spacing="12" prefWidth="290" minWidth="210"
+                      onMouseClicked="#handleNowPlayingCardClick" styleClass="now-playing-card-clickable"
+                      accessibleText="Click to expand full now playing view">
+                    <StackPane fx:id="coverArtFrame" prefWidth="56" prefHeight="56"
+                               minWidth="56" minHeight="56" styleClass="cover-frame">
+                        <FontIcon fx:id="coverPlaceholderIcon" iconLiteral="mdi2m-music-note"
+                                  styleClass="cover-placeholder-icon"/>
+                        <ImageView fx:id="nowPlayingCover" fitWidth="56" fitHeight="56" preserveRatio="false"/>
+                    </StackPane>
+
+                    <VBox alignment="CENTER_LEFT" spacing="2" minWidth="0" HBox.hgrow="ALWAYS" mouseTransparent="true">
+                        <Label fx:id="nowPlayingTitle" text="No track selected"
+                               textOverrun="ELLIPSIS" maxWidth="Infinity" styleClass="now-playing-title"/>
+                        <Button fx:id="nowPlayingArtistButton" text="Double-click any song to start listening"
+                                textOverrun="ELLIPSIS" maxWidth="Infinity" styleClass="artist-link-button"
+                                mouseTransparent="true" focusTraversable="false"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Center: Playback Controls + Seek Bar -->
+                <VBox alignment="CENTER" spacing="6" HBox.hgrow="ALWAYS" maxWidth="620">
+                    <HBox alignment="CENTER" spacing="12">
+                        <ToggleButton fx:id="shuffleButton" accessibleText="Toggle shuffle" styleClass="icon-toggle">
+                            <tooltip><Tooltip text="Shuffle"/></tooltip>
+                            <graphic><FontIcon iconLiteral="mdi2s-shuffle-variant"/></graphic>
+                        </ToggleButton>
+
+                        <Button fx:id="prevButton" onAction="#handlePrevious"
+                                accessibleText="Previous track" styleClass="icon-button">
+                            <tooltip><Tooltip text="Previous"/></tooltip>
+                            <graphic><FontIcon iconLiteral="mdi2s-skip-previous"/></graphic>
+                        </Button>
+
+                        <Button fx:id="playPauseButton" onAction="#handlePlayPause"
+                                accessibleText="Play" styleClass="play-primary-button">
+                            <tooltip><Tooltip text="Play (Space)"/></tooltip>
+                            <graphic><FontIcon fx:id="playPauseIcon" iconLiteral="mdi2p-play"/></graphic>
+                        </Button>
+
+                        <Button fx:id="nextButton" onAction="#handleNext"
+                                accessibleText="Next track" styleClass="icon-button">
+                            <tooltip><Tooltip text="Next"/></tooltip>
+                            <graphic><FontIcon iconLiteral="mdi2s-skip-next"/></graphic>
+                        </Button>
+
+                        <Button fx:id="repeatButton" onAction="#handleRepeatCycle"
+                                accessibleText="Repeat off" styleClass="icon-button">
+                            <tooltip><Tooltip text="Repeat: Off"/></tooltip>
+                            <graphic><FontIcon fx:id="repeatIcon" iconLiteral="mdi2r-repeat-off"/></graphic>
+                        </Button>
+                    </HBox>
+
+                    <HBox alignment="CENTER" spacing="10">
+                        <Label fx:id="elapsedTimeLabel" text="0:00" minWidth="38" alignment="CENTER_RIGHT"
+                               styleClass="time-label"/>
+                        <Slider fx:id="seekSlider" min="0" max="100" value="0" HBox.hgrow="ALWAYS"
+                                accessibleText="Playback position" styleClass="player-slider"/>
+                        <Label fx:id="totalTimeLabel" text="0:00" minWidth="38"
+                               styleClass="time-label"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Right: Drawer Toggle + Volume + Mini Player Switch -->
+                <HBox alignment="CENTER_RIGHT" spacing="8" prefWidth="270" minWidth="200">
+                    <ToggleButton fx:id="toggleRightDrawerButton" selected="false"
+                                  accessibleText="Toggle lyrics and queue panel" styleClass="icon-toggle">
+                        <tooltip><Tooltip text="Show or hide Lyrics &amp; Queue panel"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2m-microphone-variant"/></graphic>
+                    </ToggleButton>
+
+                    <Button fx:id="muteButton" onAction="#handleMuteToggle"
+                            accessibleText="Mute" styleClass="icon-button">
+                        <tooltip><Tooltip text="Mute / Unmute"/></tooltip>
+                        <graphic><FontIcon fx:id="volumeIcon" iconLiteral="mdi2v-volume-high"/></graphic>
+                    </Button>
+
+                    <Slider fx:id="volumeSlider" prefWidth="96" minWidth="72"
+                            accessibleText="Volume" styleClass="player-slider"/>
+
+                    <Button fx:id="miniPlayerButton" onAction="#handleOpenMiniPlayer"
+                            accessibleText="Open Mini Player" styleClass="secondary-button">
+                        <tooltip><Tooltip text="Switch to Mini Player (Ctrl+M)"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2p-picture-in-picture-top-right" iconSize="16"/></graphic>
+                    </Button>
+
+                    <Button fx:id="morePlaybackOptionsButton" onAction="#handleMorePlaybackOptions"
+                            accessibleText="More playback options" styleClass="secondary-button">
+                        <tooltip><Tooltip text="More options"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2d-dots-horizontal" iconSize="16"/></graphic>
+                    </Button>
+                </HBox>
+            </HBox>
+        </bottom>
+    </BorderPane>
+
+    <!-- Full-Window Now Playing Expanded Overlay (Image 4: Windows 11 Media Player Style) -->
+    <VBox fx:id="nowPlayingExpandedOverlay" visible="false" managed="false" styleClass="now-playing-expanded-overlay">
+        <!-- Top bar with Back button (Esc) -->
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="expanded-top-bar">
+            <Button fx:id="expandedBackButton" onAction="#handleCloseNowPlayingExpanded"
+                    accessibleText="Back to library (Esc)" styleClass="icon-button-subtle">
+                <tooltip><Tooltip text="Back to library (Esc)"/></tooltip>
+                <graphic><FontIcon iconLiteral="mdi2a-arrow-left" iconSize="22"/></graphic>
+            </Button>
+        </HBox>
+
+        <!-- Center Stack: Toggle between Large Cover Art (Image 1) and Full Synced Lyrics (Image 2) -->
+        <StackPane fx:id="expandedCenterStack" VBox.vgrow="ALWAYS" alignment="CENTER" styleClass="expanded-center-stack">
+            <!-- View 1: Large Cover Art (Default) -->
+            <VBox fx:id="expandedCoverContainer" alignment="CENTER" VBox.vgrow="ALWAYS" visible="true" managed="true">
+                <StackPane fx:id="expandedCoverFrame" styleClass="expanded-cover-frame"
+                           minWidth="200" minHeight="200" prefWidth="540" prefHeight="540">
+                    <FontIcon fx:id="expandedPlaceholderIcon" iconLiteral="mdi2m-music-note" styleClass="expanded-placeholder-icon"/>
+                    <ImageView fx:id="expandedCoverImage" preserveRatio="false"/>
+                </StackPane>
+            </VBox>
+
+            <!-- View 2: Full-Window Synced Lyrics View (Takes up the whole center area matching Image 2) -->
+            <VBox fx:id="expandedLyricsBox" alignment="CENTER" VBox.vgrow="ALWAYS" visible="false" managed="false" styleClass="expanded-lyrics-box">
+                <!-- Sub-bar: Ganti File Lirik button -->
+                <HBox alignment="CENTER_RIGHT" spacing="12" styleClass="expanded-lyrics-subbar">
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="expandedChangeLrcButton" onAction="#handleChangeLyricsFile"
+                            text="Ganti file lirik (.lrc)..." styleClass="expanded-change-lrc-button">
+                        <graphic><FontIcon iconLiteral="mdi2p-pencil-outline" iconSize="15"/></graphic>
+                        <tooltip><Tooltip text="Pilih file .lrc baru untuk lagu ini"/></tooltip>
+                    </Button>
+                </HBox>
+
+                <!-- Full Center Lyrics Scroll Pane -->
+                <ScrollPane fx:id="expandedLyricsScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                            VBox.vgrow="ALWAYS" styleClass="expanded-lyrics-scroll-pane">
+                    <VBox fx:id="expandedLyricsContainer" alignment="CENTER" spacing="16" styleClass="expanded-lyrics-container">
+                        <!-- Populated dynamically with .expanded-lyric-button -->
+                    </VBox>
+                </ScrollPane>
+
+                <!-- Empty state when no lyrics found -->
+                <VBox fx:id="expandedLyricsEmptyBox" alignment="CENTER" spacing="16" VBox.vgrow="ALWAYS" visible="false" managed="false" styleClass="expanded-lyrics-empty-box">
+                    <FontIcon iconLiteral="mdi2t-text-box-search-outline" iconSize="54" iconColor="#666666"/>
+                    <Label fx:id="expandedLyricsEmptyLabel" text="Tidak ada lirik tersinkronisasi untuk lagu ini" styleClass="expanded-lyrics-empty-label"/>
+                    <HBox alignment="CENTER" spacing="12">
+                        <Button onAction="#handleChangeLyricsFile" text="Pilih File Lirik (.lrc)..." styleClass="button-accent">
+                            <graphic><FontIcon iconLiteral="mdi2p-plus" iconSize="16" iconColor="#0A0A0A"/></graphic>
+                        </Button>
+                        <Button onAction="#handleSwitchToCover" text="Kembali ke Cover" styleClass="button-secondary"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </StackPane>
+
+        <!-- Bottom Controls & Seek Bar matching Image 4 -->
+        <VBox spacing="14" styleClass="expanded-bottom-pane">
+            <!-- Full Width Progress Bar -->
+            <HBox alignment="CENTER" spacing="12" styleClass="expanded-seek-row">
+                <Label fx:id="expandedElapsedLabel" text="0:00:00" styleClass="expanded-time-label"/>
+                <Slider fx:id="expandedSeekSlider" min="0" max="100" value="0" HBox.hgrow="ALWAYS" styleClass="player-slider, expanded-slider"/>
+                <Label fx:id="expandedTotalLabel" text="0:00:00" styleClass="expanded-time-label"/>
+            </HBox>
+
+            <!-- Bottom Transport Controls Row -->
+            <HBox alignment="CENTER" spacing="16">
+                <!-- Left: Track title & artist (Image 4: Harry Styles - As It Was) -->
+                <VBox alignment="CENTER_LEFT" spacing="3" prefWidth="300" minWidth="180">
+                    <Label fx:id="expandedTitleLabel" text="No track playing" styleClass="expanded-track-title" textOverrun="ELLIPSIS" maxWidth="300"/>
+                    <Label fx:id="expandedArtistLabel" text="Unknown artist" styleClass="expanded-track-artist" textOverrun="ELLIPSIS" maxWidth="300"/>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Center Playback Buttons (Image 4) -->
+                <HBox alignment="CENTER" spacing="14">
+                    <ToggleButton fx:id="expandedShuffleButton" accessibleText="Toggle shuffle" styleClass="icon-toggle">
+                        <tooltip><Tooltip text="Shuffle"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2s-shuffle-variant" iconSize="18"/></graphic>
+                    </ToggleButton>
+
+                    <Button fx:id="expandedPrevButton" onAction="#handlePrevious" accessibleText="Previous track" styleClass="icon-button">
+                        <tooltip><Tooltip text="Previous track"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2s-skip-previous" iconSize="20"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedRewindButton" onAction="#handleExpandedRewind10" accessibleText="Rewind 10 seconds" styleClass="icon-button">
+                        <tooltip><Tooltip text="Rewind 10 seconds"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2r-rewind-10" iconSize="22"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedPlayPauseButton" onAction="#handlePlayPause" accessibleText="Play/Pause" styleClass="expanded-play-button">
+                        <tooltip><Tooltip text="Play / Pause (Space)"/></tooltip>
+                        <graphic><FontIcon fx:id="expandedPlayPauseIcon" iconLiteral="mdi2p-play" iconSize="26" iconColor="#0A0A0A"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedForwardButton" onAction="#handleExpandedForward10" accessibleText="Fast forward 10 seconds" styleClass="icon-button">
+                        <tooltip><Tooltip text="Fast forward 10 seconds"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2f-fast-forward-10" iconSize="22"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedNextButton" onAction="#handleNext" accessibleText="Next track" styleClass="icon-button">
+                        <tooltip><Tooltip text="Next track"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2s-skip-next" iconSize="20"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedRepeatButton" onAction="#handleRepeatCycle" accessibleText="Repeat mode" styleClass="icon-button">
+                        <tooltip><Tooltip text="Repeat mode"/></tooltip>
+                        <graphic><FontIcon fx:id="expandedRepeatIcon" iconLiteral="mdi2r-repeat-off" iconSize="18"/></graphic>
+                    </Button>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Right Utility Buttons -->
+                <HBox alignment="CENTER_RIGHT" spacing="10" prefWidth="300" minWidth="180">
+                    <Button fx:id="expandedLyricsButton" onAction="#handleExpandedToggleLyrics" accessibleText="Toggle lyrics" styleClass="icon-button">
+                        <tooltip><Tooltip text="Beralih ke Lirik (L)"/></tooltip>
+                        <graphic><FontIcon fx:id="expandedLyricsButtonIcon" iconLiteral="mdi2f-format-list-text" iconSize="18"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedMuteButton" onAction="#handleMuteToggle" accessibleText="Mute" styleClass="icon-button">
+                        <tooltip><Tooltip text="Mute / Unmute"/></tooltip>
+                        <graphic><FontIcon fx:id="expandedVolumeIcon" iconLiteral="mdi2v-volume-high" iconSize="18"/></graphic>
+                    </Button>
+
+                    <Slider fx:id="expandedVolumeSlider" prefWidth="84" minWidth="60" accessibleText="Volume" styleClass="player-slider"/>
+
+                    <Button fx:id="expandedMiniPlayerButton" onAction="#handleOpenMiniPlayer" accessibleText="Mini player" styleClass="icon-button">
+                        <tooltip><Tooltip text="Mini player (Ctrl+M)"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2p-picture-in-picture-top-right" iconSize="18"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedFullscreenButton" onAction="#handleToggleFullscreen" accessibleText="Toggle fullscreen" styleClass="icon-button">
+                        <tooltip><Tooltip text="Fullscreen"/></tooltip>
+                        <graphic><FontIcon fx:id="expandedFullscreenIcon" iconLiteral="mdi2f-fullscreen" iconSize="18"/></graphic>
+                    </Button>
+
+                    <Button fx:id="expandedMoreOptionsButton" onAction="#handleExpandedMoreOptions" accessibleText="More options" styleClass="icon-button">
+                        <tooltip><Tooltip text="More options"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2d-dots-horizontal" iconSize="18"/></graphic>
+                    </Button>
+                </HBox>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

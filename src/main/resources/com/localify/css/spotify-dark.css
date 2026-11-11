@@ -1,0 +1,2339 @@
+/*
+ * Localify Spotify-Dark Theme (built over AtlantaFX PrimerDark).
+ * Surface hierarchy: #0A0A0A chrome -> #121212 canvas -> #1E1E1E elevated -> #282828 interactive.
+ * Single deliberate accent: #1DB954 for active playback, synced lyric focus, and keyboard focus rings.
+ */
+
+.root {
+    -localify-accent: #F36B21;
+    -fx-base: #121212;
+    -fx-background: #121212;
+    -fx-control-inner-background: #121212;
+    -fx-control-inner-background-alt: #181818;
+    -fx-accent: -localify-accent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-font-family: "Segoe UI", "Inter", "System";
+    -fx-font-size: 13px;
+    -fx-text-fill: #F5F5F5;
+
+    /* Override AtlantaFX CSS variables so nested skins inherit the exact palette */
+    -color-bg-default: #121212;
+    -color-bg-overlay: #1E1E1E;
+    -color-bg-subtle: #181818;
+    -color-bg-inset: #0A0A0A;
+    -color-fg-default: #F5F5F5;
+    -color-fg-muted: #B3B3B3;
+    -color-fg-subtle: #A3A3A3;
+    -color-border-default: #2E2E2E;
+    -color-border-muted: #242424;
+    -color-accent-emphasis: -localify-accent;
+    -color-accent-fg: -localify-accent;
+    -color-focus-ring: transparent;
+}
+
+/* Base pointer affordance and keyboard focus indicator across all controls */
+.button,
+.toggle-button,
+.menu-button,
+.check-box,
+.radio-button,
+.combo-box-base,
+.slider .thumb,
+.slider .track {
+    -fx-cursor: hand;
+}
+
+.button:disabled,
+.toggle-button:disabled,
+.slider:disabled {
+    -fx-cursor: default;
+    -fx-opacity: 0.45;
+}
+
+.button:focused,
+.toggle-button:focused,
+.slider:focused,
+.table-view:focused,
+.list-view:focused {
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -color-focus-ring: transparent;
+}
+
+.text-field:focused {
+    -fx-border-color: -localify-accent;
+}
+
+/* Main window layout surfaces */
+.app-root {
+    -fx-background-color: #121212;
+}
+
+.sidebar-pane {
+    -fx-background-color: #0A0A0A;
+    -fx-border-color: #242424;
+    -fx-border-width: 0 1 0 0;
+}
+
+.center-pane {
+    -fx-background-color: #121212;
+}
+
+.right-drawer {
+    -fx-background-color: #161616;
+    -fx-border-color: #242424;
+    -fx-border-width: 0 0 0 1;
+}
+
+.player-bar {
+    -fx-background-color: #0A0A0A;
+    -fx-border-color: #262626;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Wordmark & section headers */
+.brand-wordmark {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F5;
+}
+
+.brand-icon {
+    -fx-icon-color: -localify-accent;
+    -fx-icon-size: 22px;
+}
+
+.section-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #B3B3B3;
+}
+
+.folder-path-label {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #B3B3B3;
+}
+
+.view-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F5;
+}
+
+.view-summary {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #B3B3B3;
+}
+
+/* Sidebar navigation & playlists */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 6px;
+    -fx-padding: 8 10 8 10;
+    -fx-alignment: CENTER_LEFT;
+    -fx-text-fill: #F5F5F5;
+    -fx-font-weight: 600;
+}
+
+.nav-button:hover {
+    -fx-background-color: #1E1E1E;
+}
+
+.nav-button:pressed {
+    -fx-background-color: #282828;
+}
+
+.nav-button-active {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: #383838;
+}
+
+.nav-button-active .sidebar-item-icon {
+    -fx-icon-color: -localify-accent;
+}
+
+.sidebar-item-icon {
+    -fx-icon-color: #B3B3B3;
+    -fx-icon-size: 18px;
+}
+
+.count-pill {
+    -fx-background-color: #262626;
+    -fx-background-radius: 4px;
+    -fx-padding: 2 7 2 7;
+    -fx-font-size: 11px;
+    -fx-text-fill: #F5F5F5;
+}
+
+.filter-chip-box {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 6px;
+    -fx-border-color: -localify-accent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 5 8 5 10;
+}
+
+.filter-chip-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #F5F5F5;
+}
+
+.playlist-list {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.playlist-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+    -fx-padding: 6 8 6 8;
+    -fx-text-fill: #F5F5F5;
+    -fx-cursor: hand;
+}
+
+.playlist-list .list-cell:filled:hover {
+    -fx-background-color: #1E1E1E;
+}
+
+.playlist-list .list-cell:filled:selected {
+    -fx-background-color: #282828;
+}
+
+.playlist-cell-name {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 13px;
+}
+
+.muted-hint-label {
+    -fx-text-fill: #A3A3A3;
+    -fx-font-size: 12px;
+}
+
+/* Buttons & inputs */
+.secondary-button {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 6px;
+    -fx-border-color: #6E6E6E;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #F5F5F5;
+    -fx-padding: 6 12 6 12;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #2A2A2A;
+    -fx-border-color: #A3A3A3;
+}
+
+.secondary-button:pressed {
+    -fx-background-color: #333333;
+}
+
+.accent-button {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #0A0A0A;
+    -fx-font-weight: bold;
+    -fx-padding: 7 14 7 14;
+}
+
+.accent-button:hover {
+    -fx-background-color: #FF8533;
+}
+
+.accent-button:pressed {
+    -fx-background-color: #D45415;
+}
+
+.accent-button:focused {
+    -fx-border-color: #F5F5F5;
+}
+
+.sort-chip {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 6px;
+    -fx-border-color: #6E6E6E;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #F5F5F5;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.sort-chip:hover {
+    -fx-background-color: #282828;
+}
+
+.sort-chip-active {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: -localify-accent;
+    -fx-text-fill: -localify-accent;
+}
+
+.sort-chip-active .font-icon {
+    -fx-icon-color: -localify-accent;
+}
+
+.search-box {
+    -fx-background-color: #1C1C1C;
+    -fx-background-radius: 6px;
+    -fx-border-color: #383838;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 2 6 2 8;
+}
+
+.search-box:hover {
+    -fx-border-color: #555555;
+}
+
+.search-box:focus-within {
+    -fx-border-color: -localify-accent;
+}
+
+.search-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #F5F5F5;
+    -fx-prompt-text-fill: #A3A3A3;
+    -fx-padding: 5 4 5 4;
+}
+
+.search-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Icon buttons */
+.icon-button,
+.icon-toggle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-padding: 6;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+}
+
+.icon-button .font-icon,
+.icon-toggle .font-icon {
+    -fx-icon-color: #B3B3B3;
+    -fx-icon-size: 18px;
+}
+
+.icon-button:hover,
+.icon-toggle:hover {
+    -fx-background-color: #242424;
+}
+
+.icon-button:hover .font-icon,
+.icon-toggle:hover .font-icon {
+    -fx-icon-color: #F5F5F5;
+}
+
+.icon-button:pressed,
+.icon-toggle:pressed {
+    -fx-background-color: #303030;
+}
+
+.control-toggle-active .font-icon {
+    -fx-icon-color: -localify-accent;
+}
+
+.control-toggle-active {
+    -fx-background-color: rgba(243, 107, 33, 0.16);
+}
+
+.icon-button-subtle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+    -fx-padding: 3 5 3 5;
+}
+
+.icon-button-subtle:hover {
+    -fx-background-color: #2E2E2E;
+}
+
+.small-icon {
+    -fx-icon-color: #B3B3B3;
+    -fx-icon-size: 14px;
+}
+
+/* Primary circular Play/Pause focal button */
+.play-primary-button {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999px;
+    -fx-border-width: 2px;
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-max-width: 40px;
+    -fx-max-height: 40px;
+    -fx-padding: 0;
+}
+
+.play-primary-button .font-icon {
+    -fx-icon-color: #0A0A0A;
+    -fx-icon-size: 22px;
+}
+
+.play-primary-button:hover {
+    -fx-background-color: #FF8533;
+}
+
+.play-primary-button:pressed {
+    -fx-background-color: #D45415;
+}
+
+.play-primary-button:focused {
+    -fx-border-color: #F5F5F5;
+}
+
+/* Track TableView */
+.track-table {
+    -fx-background-color: #121212;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-table-cell-border-color: transparent;
+}
+
+.track-table .column-header-background {
+    -fx-background-color: #121212;
+    -fx-border-color: #282828;
+    -fx-border-width: 0 0 1 0;
+}
+
+.track-table .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 36px;
+}
+
+.track-table .column-header .label {
+    -fx-text-fill: #B3B3B3;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.track-table .table-row-cell {
+    -fx-background-color: #121212;
+    -fx-background-insets: 0;
+    -fx-cell-size: 40px;
+    -fx-cursor: hand;
+}
+
+.track-table .table-row-cell:filled:hover {
+    -fx-background-color: #202020;
+}
+
+.track-table .table-row-cell:filled:selected {
+    -fx-background-color: #282828;
+}
+
+.track-table .table-cell {
+    -fx-text-fill: #F5F5F5;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 10 0 10;
+    -fx-border-color: transparent;
+}
+
+.track-table .active-track-title {
+    -fx-text-fill: -localify-accent;
+    -fx-font-weight: bold;
+}
+
+.playing-row-icon {
+    -fx-icon-color: -localify-accent;
+    -fx-icon-size: 16px;
+}
+
+/* Right Drawer: Tabs, Synced Lyrics, and Playing Next Queue */
+.drawer-tab {
+    -fx-background-color: #222222;
+    -fx-background-radius: 6px;
+    -fx-border-color: #6E6E6E;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #B3B3B3;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-padding: 5 12 5 12;
+}
+
+.drawer-tab:hover {
+    -fx-text-fill: #F5F5F5;
+    -fx-background-color: #2A2A2A;
+}
+
+.drawer-tab:selected {
+    -fx-background-color: #282828;
+    -fx-border-color: -localify-accent;
+    -fx-text-fill: #F5F5F5;
+}
+
+.lyrics-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.lyrics-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.lyric-line-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #B3B3B3;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.lyric-line-button:hover {
+    -fx-background-color: #242424;
+    -fx-text-fill: #F5F5F5;
+}
+
+.lyric-line-past {
+    -fx-text-fill: #A3A3A3;
+}
+
+.lyric-line-active {
+    -fx-text-fill: #FF8533;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(243, 107, 33, 0.12);
+}
+
+.queue-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.queue-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+    -fx-padding: 6 8 6 8;
+    -fx-cursor: hand;
+}
+
+.queue-list .list-cell:filled:hover {
+    -fx-background-color: #242424;
+}
+
+.queue-list .list-cell:filled:selected {
+    -fx-background-color: #2C2C2C;
+}
+
+.queue-item-title {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+}
+
+.queue-item-artist {
+    -fx-text-fill: #B3B3B3;
+    -fx-font-size: 11.5px;
+}
+
+/* Now Playing bottom bar */
+.cover-frame {
+    -fx-background-color: #242424;
+    -fx-background-radius: 8px;
+    -fx-border-color: #383838;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+}
+
+.cover-placeholder-icon {
+    -fx-icon-color: #B3B3B3;
+    -fx-icon-size: 24px;
+}
+
+.now-playing-title {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F5;
+}
+
+.artist-link-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-padding: 1 3 1 0;
+    -fx-text-fill: #B3B3B3;
+    -fx-font-size: 12px;
+}
+
+.artist-link-button:hover {
+    -fx-text-fill: #F5F5F5;
+    -fx-underline: true;
+}
+
+.artist-link-button:disabled {
+    -fx-opacity: 1.0;
+    -fx-text-fill: #B3B3B3;
+    -fx-underline: false;
+}
+
+.time-label {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #B3B3B3;
+}
+
+/* Sliders (seek & volume) */
+.player-slider .track {
+    -fx-background-color: #4D4D4D;
+    -fx-background-radius: 3px;
+    -fx-pref-height: 5px;
+}
+
+.player-slider .colored-track {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 3px;
+}
+
+.player-slider .thumb {
+    -fx-background-color: #F5F5F5;
+    -fx-background-radius: 999px;
+    -fx-pref-width: 13px;
+    -fx-pref-height: 13px;
+    -fx-border-color: #0A0A0A;
+    -fx-border-width: 1px;
+    -fx-border-radius: 999px;
+}
+
+.player-slider:hover .thumb,
+.player-slider:focused .thumb {
+    -fx-background-color: #FF8533;
+    -fx-border-color: #F5F5F5;
+}
+
+/* Empty, Loading, and Error States */
+.state-card {
+    -fx-background-color: #181818;
+    -fx-background-radius: 8px;
+    -fx-border-color: #2E2E2E;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-padding: 28 32 28 32;
+    -fx-max-width: 460px;
+    -fx-max-height: 260px;
+}
+
+.state-icon {
+    -fx-icon-color: #B3B3B3;
+    -fx-icon-size: 32px;
+}
+
+.state-error-icon {
+    -fx-icon-color: #FFB4AB;
+    -fx-icon-size: 32px;
+}
+
+.state-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F5;
+}
+
+.state-detail {
+    -fx-font-size: 13px;
+    -fx-text-fill: #B3B3B3;
+}
+
+/* Banners & Toasts */
+.error-banner {
+    -fx-background-color: #3B1414;
+    -fx-border-color: #8C2D2D;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 16 8 16;
+}
+
+.error-banner-label {
+    -fx-text-fill: #FFB4AB;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+}
+
+.toast-bar {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: -localify-accent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 16 6 16;
+}
+
+.toast-label {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 12px;
+}
+
+/* Context Menu & Modal Dialogs */
+.context-menu {
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 6px;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 14, 0.1, 0, 4);
+}
+
+.context-menu .menu-item {
+    -fx-background-radius: 4px;
+    -fx-padding: 6 12 6 10;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: -color-fg-default;
+}
+
+.context-menu .menu-item:focused,
+.context-menu .menu-item:hover {
+    -fx-background-color: -color-bg-subtle;
+}
+
+.context-menu .menu-item:focused .label,
+.context-menu .menu-item:hover .label {
+    -fx-text-fill: -color-fg-default;
+}
+
+.menu-font-icon {
+    -fx-icon-color: -color-fg-muted;
+    -fx-icon-size: 16px;
+}
+
+.danger-menu-item .label {
+    -fx-text-fill: #FFB4AB;
+}
+
+.danger-menu-item .menu-font-icon {
+    -fx-icon-color: #FFB4AB;
+}
+
+.localify-dialog {
+    -fx-background-color: #181818;
+}
+
+.localify-dialog > .header-panel {
+    -fx-background-color: #121212;
+    -fx-border-color: #2A2A2A;
+    -fx-border-width: 0 0 1 0;
+}
+
+.localify-dialog > .header-panel .label {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.field-label,
+.prop-key-label {
+    -fx-text-fill: #B3B3B3;
+    -fx-font-weight: 600;
+    -fx-font-size: 12.5px;
+}
+
+.prop-section-header {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: 700;
+    -fx-font-size: 13px;
+    -fx-padding: 0 0 2px 0;
+}
+
+.prop-value-field {
+    -fx-background-color: #121212;
+    -fx-border-color: #383838;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-text-fill: #F5F5F5;
+}
+
+.validation-error-label {
+    -fx-text-fill: #FFB4AB;
+    -fx-font-size: 12px;
+}
+
+/* Mini Player frameless top-center card */
+.mini-player-root {
+    -fx-background-color: #181818;
+    -fx-border-color: #383838;
+    -fx-border-width: 1px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+}
+
+.mini-player-root .cover-placeholder-icon {
+    -fx-icon-size: 20px;
+}
+
+.mini-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F5;
+}
+
+.mini-artist {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #B3B3B3;
+}
+
+.mini-play-button {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999px;
+    -fx-border-width: 2px;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-max-width: 32px;
+    -fx-max-height: 32px;
+    -fx-padding: 0;
+}
+
+.mini-play-button .font-icon {
+    -fx-icon-color: #0A0A0A;
+    -fx-icon-size: 18px;
+}
+
+.mini-play-button:hover {
+    -fx-background-color: #FF8533;
+}
+
+.mini-play-button:focused {
+    -fx-border-color: #F5F5F5;
+}
+
+.mini-drawer {
+    -fx-background-color: #121212;
+    -fx-border-color: #2C2C2C;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Modern Grouped Card List (matching Images 2, 3 & 4) */
+.content-stack-pane,
+.content-stack-pane:focused,
+.song-card-list,
+.song-card-list:focused,
+.song-card-list:hover,
+.song-card-list .virtual-flow,
+.song-card-list .virtual-flow:focused,
+.song-card-list .clipped-container,
+.song-card-list .clipped-container:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-box-border: transparent;
+    -fx-inner-border: transparent;
+}
+
+.song-card-list .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-min-height: 0;
+}
+
+.song-card-list .scroll-bar:horizontal .thumb,
+.song-card-list .scroll-bar:horizontal .track,
+.song-card-list .scroll-bar:horizontal .increment-button,
+.song-card-list .scroll-bar:horizontal .decrement-button {
+    -fx-opacity: 0;
+    -fx-padding: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.song-card-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 2 0 2 0;
+    -fx-text-fill: #F5F5F5;
+    -fx-border-color: transparent;
+}
+
+.song-card-list .list-cell:focused,
+.song-card-list .list-cell:filled:selected,
+.song-card-list .list-cell:filled:selected:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.song-section-header {
+    -fx-text-fill: -localify-accent;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 0 6 6;
+    -fx-cursor: hand;
+}
+
+.song-section-header:hover {
+    -fx-text-fill: #FF8533;
+}
+
+/* Section Jump Alphabet Picker Overlay (matches media_1794196368577_10db7f83.png) */
+.section-jump-overlay {
+    -fx-background-color: #212121;
+    -fx-alignment: center;
+}
+
+.section-jump-grid {
+    -fx-hgap: 32px;
+    -fx-vgap: 22px;
+    -fx-alignment: center;
+}
+
+.section-jump-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 4 6 4 6;
+    -fx-min-width: 38px;
+    -fx-pref-width: 42px;
+    -fx-min-height: 38px;
+    -fx-pref-height: 42px;
+    -fx-alignment: center;
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-cursor: hand;
+    -fx-background-radius: 6px;
+}
+
+.section-jump-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: -localify-accent;
+}
+
+.section-jump-btn:focused {
+    -fx-border-color: rgba(243, 107, 33, 0.6);
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+}
+
+.section-jump-btn-disabled {
+    -fx-text-fill: #4E4E4E;
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
+}
+
+.section-jump-btn-disabled:hover {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4E4E4E;
+}
+
+.section-jump-chip {
+    -fx-background-color: #282828;
+    -fx-border-color: #3E3E3E;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 8 16 8 16;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-cursor: hand;
+}
+
+.section-jump-chip:hover {
+    -fx-background-color: #363636;
+    -fx-border-color: -localify-accent;
+    -fx-text-fill: -localify-accent;
+}
+
+.song-card-row {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 8 12 8 12;
+    -fx-min-height: 42px;
+    -fx-cursor: hand;
+}
+
+.song-card-tinted {
+    -fx-background-color: #232323;
+}
+
+.song-card-selected {
+    -fx-background-color: rgba(243, 107, 33, 0.08);
+    -fx-border-color: rgba(243, 107, 33, 0.4);
+    -fx-border-radius: 6px;
+}
+
+.song-card-row:hover {
+    -fx-background-color: #303030;
+}
+
+.song-card-row:pressed {
+    -fx-background-color: #383838;
+}
+
+.song-card-active {
+    -fx-background-color: rgba(243, 107, 33, 0.14);
+    -fx-border-color: -localify-accent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+}
+
+.song-card-title {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 600;
+}
+
+.song-card-title-active {
+    -fx-text-fill: #FF8533;
+    -fx-font-weight: bold;
+}
+
+.playing-row-icon {
+    -fx-icon-color: -localify-accent;
+    -fx-icon-size: 16px;
+}
+
+.song-card-subtext {
+    -fx-text-fill: #B3B3B3;
+    -fx-font-size: 12.5px;
+}
+
+/* Row-level Checkbox & Play Button (Images 3 & 4) */
+.row-checkbox,
+.selection-checkbox {
+    -fx-cursor: hand;
+}
+
+.row-checkbox .box,
+.selection-checkbox .box {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 4px;
+    -fx-border-color: #6E6E6E;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1.5px;
+    -fx-padding: 3px;
+}
+
+.row-checkbox:hover .box,
+.selection-checkbox:hover .box {
+    -fx-border-color: #B3B3B3;
+}
+
+.row-checkbox:selected .box,
+.selection-checkbox:selected .box {
+    -fx-background-color: -localify-accent;
+    -fx-border-color: -localify-accent;
+}
+
+.row-checkbox:selected .mark,
+.selection-checkbox:selected .mark {
+    -fx-background-color: #0A0A0A;
+}
+
+.row-play-button {
+    -fx-background-color: #242424;
+    -fx-background-radius: 4px;
+    -fx-border-color: #383838;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+    -fx-padding: 3;
+    -fx-min-width: 26px;
+    -fx-min-height: 26px;
+    -fx-max-width: 26px;
+    -fx-max-height: 26px;
+    -fx-cursor: hand;
+}
+
+.row-play-button .font-icon {
+    -fx-icon-color: -localify-accent;
+    -fx-icon-size: 14px;
+}
+
+.row-play-button:hover {
+    -fx-background-color: #323232;
+    -fx-border-color: -localify-accent;
+}
+
+.row-play-button:hover .font-icon {
+    -fx-icon-color: #FF8533;
+}
+
+/* Shuffle and Play (Orange button as requested in Image 2) */
+.shuffle-play-button {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #0A0A0A;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 7 16 7 16;
+    -fx-cursor: hand;
+}
+
+.shuffle-play-button .font-icon {
+    -fx-icon-color: #0A0A0A;
+    -fx-icon-size: 16px;
+}
+
+.shuffle-play-button:hover {
+    -fx-background-color: #FA8543;
+}
+
+.shuffle-play-button:pressed {
+    -fx-background-color: #D95610;
+}
+
+.shuffle-play-button:focused {
+    -fx-border-color: #B3B3B3;
+}
+
+/* Modern Library Navigation Tabs (Songs, Albums, Artists - Image 2) */
+.view-title-main {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.nav-tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: #A0A0A0;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-padding: 4px 10px 8px 10px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2.5px 0;
+    -fx-cursor: hand;
+    -fx-background-insets: 0;
+}
+
+.nav-tab:hover {
+    -fx-text-fill: #FFFFFF;
+}
+
+.nav-tab-active {
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: -localify-accent;
+    -fx-border-width: 0 0 2.5px 0;
+}
+
+/* Clickable Now Playing Bottom Left Card (Image 5 -> Expands to Image 4) */
+.now-playing-card-clickable {
+    -fx-cursor: hand;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 8px;
+    -fx-background-color: transparent;
+}
+
+.now-playing-card-clickable:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+}
+
+.now-playing-card-clickable:hover .cover-frame {
+    -fx-effect: dropshadow(gaussian, rgba(243, 107, 33, 0.5), 10, 0, 0, 0);
+}
+
+.now-playing-artist-label {
+    -fx-text-fill: #A0A0A0;
+    -fx-font-size: 12px;
+}
+
+/* Song card row album cover thumbnail */
+.row-cover-frame {
+    -fx-background-color: #1A1A1A;
+    -fx-background-radius: 8px;
+    -fx-border-color: #2E2E2E;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-min-width: 36px;
+    -fx-min-height: 36px;
+    -fx-max-width: 36px;
+    -fx-max-height: 36px;
+    -fx-alignment: center;
+}
+
+/* Fullscreen / Expanded Now Playing Screen (Image 4: Windows 11 Media Player Style) */
+.now-playing-expanded-overlay {
+    -fx-background-color: #121212;
+    -fx-padding: 16px 28px 24px 28px;
+}
+
+.expanded-top-bar {
+    -fx-padding: 0 0 10px 0;
+}
+
+.expanded-app-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #E0E0E0;
+}
+
+.expanded-cover-frame {
+    -fx-background-color: #1A1A1A;
+    -fx-background-radius: 20px;
+    -fx-border-color: #2C2C2C;
+    -fx-border-radius: 20px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 32, 0, 0, 10);
+    -fx-cursor: hand;
+}
+
+.expanded-cover-frame:hover {
+    -fx-border-color: -localify-accent;
+}
+
+.expanded-placeholder-icon {
+    -fx-icon-color: #555555;
+    -fx-icon-size: 110px;
+}
+
+.expanded-center-stack {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.expanded-cover-hint {
+    -fx-background-color: rgba(0, 0, 0, 0.72);
+    -fx-background-radius: 16px;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+
+.expanded-hint-pill {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 20px;
+    -fx-padding: 8 16 8 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 2);
+}
+
+.expanded-hint-label {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* Expanded Full-Window Synced Lyrics View (Takes up the whole center area matching Image 2) */
+.expanded-lyrics-box {
+    -fx-background-color: transparent;
+    -fx-padding: 0 16px 4px 16px;
+}
+
+.expanded-lyrics-subbar {
+    -fx-padding: 0 12px 6px 12px;
+}
+
+.expanded-change-lrc-button {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #B3B3B3;
+    -fx-background-color: rgba(255, 255, 255, 0.07);
+    -fx-background-radius: 16px;
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+    -fx-border-radius: 16px;
+    -fx-border-width: 1px;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.expanded-change-lrc-button:hover {
+    -fx-background-color: rgba(243, 107, 33, 0.18);
+    -fx-border-color: -localify-accent;
+    -fx-text-fill: #FFFFFF;
+}
+
+/* Lyrics Timing Offset Controls (Eliminate sync delay) */
+.lyrics-offset-box {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-radius: 6px;
+    -fx-padding: 3 8 3 8;
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+}
+
+.lyrics-offset-icon {
+    -fx-icon-color: -localify-accent;
+}
+
+.lyrics-offset-label {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #B3B3B3;
+    -fx-font-weight: 600;
+}
+
+.lyrics-offset-badge {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -localify-accent;
+    -fx-min-width: 40px;
+    -fx-alignment: center;
+}
+
+.lyrics-offset-btn {
+    -fx-background-color: #242424;
+    -fx-text-fill: #EDEDED;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 4px;
+    -fx-padding: 2 7 2 7;
+    -fx-cursor: hand;
+    -fx-border-color: #383838;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+}
+
+.lyrics-offset-btn:hover {
+    -fx-background-color: #333333;
+    -fx-border-color: #555555;
+    -fx-text-fill: #FFFFFF;
+}
+
+.drawer-offset-btn {
+    -fx-background-color: #242424;
+    -fx-text-fill: #CCCCCC;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 4px;
+    -fx-padding: 2 5 2 5;
+    -fx-cursor: hand;
+    -fx-border-color: #383838;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+}
+
+.drawer-offset-btn:hover {
+    -fx-background-color: #333333;
+    -fx-text-fill: #FFFFFF;
+}
+
+.drawer-offset-badge {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -localify-accent;
+    -fx-min-width: 36px;
+    -fx-alignment: center;
+}
+
+.expanded-lyrics-scroll-pane,
+.expanded-lyrics-scroll-pane:focused,
+.expanded-lyrics-scroll-pane .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.expanded-lyrics-container {
+    -fx-background-color: transparent;
+    -fx-padding: 100px 32px 140px 32px;
+    -fx-alignment: center;
+}
+
+.expanded-lyric-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 12px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 8 20 8 20;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #727272;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+
+.expanded-lyric-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-text-fill: #C6C6C6;
+}
+
+.expanded-lyric-past {
+    -fx-text-fill: #949494;
+    -fx-font-size: 20px;
+}
+
+.expanded-lyric-active {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 26px;
+    -fx-font-weight: 800;
+    -fx-background-color: rgba(243, 107, 33, 0.22);
+    -fx-effect: dropshadow(gaussian, rgba(243, 107, 33, 0.4), 20, 0, 0, 0);
+    -fx-border-color: rgba(243, 107, 33, 0.6);
+    -fx-border-radius: 12px;
+    -fx-border-width: 1px;
+}
+
+.expanded-lyrics-button-active {
+    -fx-background-color: rgba(243, 107, 33, 0.2);
+    -fx-border-color: -localify-accent;
+    -fx-border-radius: 16px;
+    -fx-border-width: 1px;
+}
+
+.expanded-lyrics-button-active .font-icon {
+    -fx-icon-color: -localify-accent;
+}
+
+.expanded-lyrics-empty-box {
+    -fx-background-color: transparent;
+    -fx-padding: 40px;
+}
+
+.expanded-lyrics-empty-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #A0A0A0;
+    -fx-font-weight: 500;
+}
+
+.expanded-bottom-pane {
+    -fx-padding: 12px 0 0 0;
+}
+
+.expanded-seek-row {
+    -fx-padding: 0 0 4px 0;
+}
+
+.expanded-time-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #A0A0A0;
+    -fx-font-family: "Segoe UI", "Consolas", monospace;
+    -fx-min-width: 52px;
+}
+
+.expanded-track-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.expanded-track-artist {
+    -fx-font-size: 13px;
+    -fx-text-fill: #A0A0A0;
+}
+
+.expanded-play-button {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 28px;
+    -fx-min-width: 52px;
+    -fx-min-height: 52px;
+    -fx-max-width: 52px;
+    -fx-max-height: 52px;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(243, 107, 33, 0.45), 12, 0, 0, 0);
+}
+
+.expanded-play-button:hover {
+    -fx-background-color: #FA8543;
+    -fx-effect: dropshadow(gaussian, rgba(243, 107, 33, 0.65), 16, 0, 0, 0);
+}
+
+.expanded-play-button:pressed {
+    -fx-background-color: #D95610;
+}
+
+.expanded-play-button .font-icon {
+    -fx-icon-color: #0A0A0A;
+    -fx-icon-size: 26px;
+}
+
+/* Multi-selection Action Bar (Image 4) */
+.selection-action-bar {
+    -fx-min-height: 38px;
+    -fx-padding: 0 4 0 4;
+}
+
+.selection-count-text {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 600;
+}
+
+.selection-bullet {
+    -fx-text-fill: #666666;
+    -fx-font-size: 14px;
+}
+
+.selection-clear-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -localify-accent;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6 2 6;
+    -fx-cursor: hand;
+}
+
+.selection-clear-button:hover {
+    -fx-text-fill: #FF8533;
+    -fx-underline: true;
+}
+
+.selection-primary-play-button {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #0A0A0A;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.selection-primary-play-button .font-icon {
+    -fx-icon-color: #0A0A0A;
+    -fx-icon-size: 16px;
+}
+
+.selection-primary-play-button:hover {
+    -fx-background-color: #FF8533;
+}
+
+.selection-primary-play-button:pressed {
+    -fx-background-color: #D45415;
+}
+
+.selection-secondary-button {
+    -fx-background-color: #242424;
+    -fx-background-radius: 6px;
+    -fx-border-color: #4D4D4D;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+    -fx-padding: 6 14 6 14;
+    -fx-cursor: hand;
+}
+
+.selection-secondary-button:hover {
+    -fx-background-color: #303030;
+    -fx-border-color: #777777;
+}
+
+.selection-secondary-button .label {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-weight: 600;
+}
+
+.selection-secondary-button .arrow-button .arrow {
+    -fx-background-color: #F5F5F5;
+}
+    -fx-border-color: #F5F5F5;
+}
+
+.filter-menu-label {
+    -fx-text-fill: #B3B3B3;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.filter-menu-button {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 6px;
+    -fx-border-color: #555555;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: -localify-accent;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 12 5 12;
+    -fx-cursor: hand;
+}
+
+.filter-menu-button:hover {
+    -fx-background-color: #282828;
+    -fx-border-color: #888888;
+}
+
+.filter-menu-button .label {
+    -fx-text-fill: -localify-accent;
+    -fx-font-weight: bold;
+}
+
+.filter-menu-button .arrow-button .arrow {
+    -fx-background-color: -localify-accent;
+}
+
+.settings-checkbox {
+    -fx-text-fill: #F5F5F5;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+/* =============================================================================
+ * Localify In-Page Settings View (Windows 11 Media Player Style - Image 2)
+ * ============================================================================= */
+.settings-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.settings-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.settings-container {
+    -fx-spacing: 20px;
+}
+
+.settings-header-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F5;
+}
+
+.settings-section {
+    -fx-spacing: 8px;
+}
+
+.settings-section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #EDEDED;
+    -fx-padding: 0 0 2px 2px;
+}
+
+.settings-card {
+    -fx-background-color: #1F1F1F;
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(255, 255, 255, 0.07);
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-padding: 12px 18px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-min-height: 58px;
+    -fx-cursor: default;
+}
+
+.settings-card:hover {
+    -fx-background-color: #262626;
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+}
+
+.settings-card-icon {
+    -fx-icon-color: -localify-accent;
+    -fx-icon-size: 22px;
+}
+
+.settings-card-title {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #F5F5F5;
+}
+
+.settings-card-subtitle {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #9E9E9E;
+}
+
+/* Sidebar item active state */
+.sidebar-item-active {
+    -fx-background-color: #282828 !important;
+    -fx-border-color: -localify-accent !important;
+    -fx-border-width: 0 0 0 3px !important;
+    -fx-text-fill: #FFFFFF !important;
+}
+
+/* =============================================================================
+ * App Theme Variants (Light, Nord, Dracula)
+ * ============================================================================= */
+
+/* Light Theme */
+.root.theme-light {
+    -fx-base: #FFFFFF;
+    -fx-background: #F8F9FA;
+    -fx-control-inner-background: #FFFFFF;
+    -fx-control-inner-background-alt: #F1F3F5;
+    -fx-text-fill: #1F2328;
+    -color-bg-default: #FFFFFF;
+    -color-bg-overlay: #F6F8FA;
+    -color-bg-subtle: #F3F4F6;
+    -color-bg-inset: #EAEEF2;
+    -color-fg-default: #1F2328;
+    -color-fg-muted: #656D76;
+    -color-fg-subtle: #8C959F;
+    -color-border-default: #D0D7DE;
+    -color-border-muted: #E1E4E8;
+}
+
+.root.theme-light .app-root {
+    -fx-background-color: #FFFFFF;
+}
+
+.root.theme-light .sidebar-pane {
+    -fx-background-color: #F8F9FA;
+    -fx-border-color: #E1E4E8;
+    -fx-border-width: 0 1 0 0;
+}
+
+.root.theme-light .center-pane,
+.root.theme-light .settings-scroll-pane {
+    -fx-background-color: #FFFFFF;
+}
+
+.root.theme-light .right-drawer {
+    -fx-background-color: #F8F9FA;
+    -fx-border-color: #E1E4E8;
+    -fx-border-width: 0 0 0 1;
+}
+
+.root.theme-light .player-bar {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E1E4E8;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Light Theme Typography & Headers */
+.root.theme-light .settings-header-title,
+.root.theme-light .settings-section-title,
+.root.theme-light .settings-card-title,
+.root.theme-light .view-title-main,
+.root.theme-light .view-title,
+.root.theme-light .brand-wordmark,
+.root.theme-light .song-title-label,
+.root.theme-light .now-playing-title,
+.root.theme-light .selection-count-label {
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .settings-card-subtitle,
+.root.theme-light .section-caption,
+.root.theme-light .folder-path-label,
+.root.theme-light .view-summary,
+.root.theme-light .filter-menu-label,
+.root.theme-light .song-sub-label,
+.root.theme-light .artist-link-button,
+.root.theme-light .time-label,
+.root.theme-light .muted-hint-label,
+.root.theme-light .header-tab,
+.root.theme-light .drawer-tab-button {
+    -fx-text-fill: #656D76;
+}
+
+.root.theme-light .header-tab-active,
+.root.theme-light .drawer-tab-button-active {
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .song-index-label {
+    -fx-text-fill: #8C959F;
+}
+
+/* Light Theme Search Box */
+.root.theme-light .search-box {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D0D7DE;
+}
+
+.root.theme-light .search-box:hover {
+    -fx-border-color: #8C959F;
+}
+
+.root.theme-light .search-box:focus-within {
+    -fx-border-color: -localify-accent;
+}
+
+.root.theme-light .search-input {
+    -fx-text-fill: #1F2328;
+    -fx-prompt-text-fill: #8C959F;
+}
+
+.root.theme-light .search-box .font-icon {
+    -fx-icon-color: #656D76;
+}
+
+/* Light Theme Sidebar Navigation & Lists */
+.root.theme-light .nav-button {
+    -fx-text-fill: #1F2328;
+    -fx-background-color: transparent;
+}
+
+.root.theme-light .nav-button:hover {
+    -fx-background-color: #EEF2F6;
+}
+
+.root.theme-light .nav-button:pressed {
+    -fx-background-color: #E1E4E8;
+}
+
+.root.theme-light .nav-button-active {
+    -fx-background-color: #EAEFF5;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .sidebar-item-icon {
+    -fx-icon-color: #656D76;
+}
+
+.root.theme-light .nav-button-active .sidebar-item-icon {
+    -fx-icon-color: -localify-accent;
+}
+
+.root.theme-light .sidebar-item-active {
+    -fx-background-color: #EAEFF5 !important;
+    -fx-border-color: -localify-accent !important;
+    -fx-text-fill: #1F2328 !important;
+}
+
+.root.theme-light .count-pill {
+    -fx-background-color: #EAEFF5;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .playlist-cell-name {
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .playlist-list .list-cell:filled:hover {
+    -fx-background-color: #EEF2F6;
+}
+
+.root.theme-light .playlist-list .list-cell:filled:selected {
+    -fx-background-color: #EAEFF5;
+}
+
+/* Light Theme Buttons (Secondary, Subtle & Icon) */
+.root.theme-light .secondary-button {
+    -fx-background-color: #F6F8FA;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .secondary-button:hover {
+    -fx-background-color: #EEF2F6;
+    -fx-border-color: #AFB8C1;
+}
+
+.root.theme-light .secondary-button:pressed {
+    -fx-background-color: #E1E4E8;
+}
+
+.root.theme-light .secondary-button .font-icon {
+    -fx-icon-color: #1F2328 !important;
+}
+
+.root.theme-light .icon-button .font-icon,
+.root.theme-light .icon-toggle .font-icon {
+    -fx-icon-color: #57606A;
+}
+
+.root.theme-light .icon-button:hover,
+.root.theme-light .icon-toggle:hover {
+    -fx-background-color: #EEF2F6;
+}
+
+.root.theme-light .icon-button:hover .font-icon,
+.root.theme-light .icon-toggle:hover .font-icon {
+    -fx-icon-color: #1F2328;
+}
+
+.root.theme-light .icon-button-subtle .font-icon {
+    -fx-icon-color: #57606A;
+}
+
+.root.theme-light .icon-button-subtle:hover {
+    -fx-background-color: #EEF2F6;
+}
+
+.root.theme-light .icon-button-subtle:hover .font-icon {
+    -fx-icon-color: #1F2328;
+}
+
+/* Light Theme Settings Cards & Controls */
+.root.theme-light .settings-card {
+    -fx-background-color: #F8F9FA;
+    -fx-border-color: #E1E4E8;
+}
+
+.root.theme-light .settings-card:hover {
+    -fx-background-color: #EEF2F6;
+    -fx-border-color: #D0D7DE;
+}
+
+.root.theme-light .settings-checkbox {
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .settings-checkbox .box {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D0D7DE;
+}
+
+.root.theme-light .settings-checkbox:selected .box {
+    -fx-background-color: -localify-accent;
+    -fx-border-color: -localify-accent;
+}
+
+.root.theme-light #settingsDiscordClientIdField {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D0D7DE;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 5 8;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light #settingsDiscordClientIdField:focus-within {
+    -fx-border-color: -localify-accent;
+}
+
+/* Light Theme Dropdown Menus & MenuButtons */
+.root.theme-light .filter-menu-button {
+    -fx-background-color: #F6F8FA;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: -localify-accent;
+}
+
+.root.theme-light .filter-menu-button:hover {
+    -fx-background-color: #EEF2F6;
+    -fx-border-color: #AFB8C1;
+}
+
+.root.theme-light .filter-menu-button .label {
+    -fx-text-fill: -localify-accent;
+}
+
+.root.theme-light .filter-menu-button .arrow-button .arrow {
+    -fx-background-color: -localify-accent;
+}
+
+/* Light Theme Song Card & Lists */
+.root.theme-light .song-card {
+    -fx-background-color: transparent;
+}
+
+.root.theme-light .song-card-even {
+    -fx-background-color: #F9FAFB;
+}
+
+.root.theme-light .song-card:hover {
+    -fx-background-color: #EEF2F6;
+}
+
+.root.theme-light .cover-frame {
+    -fx-background-color: #F1F3F5;
+    -fx-border-color: #E1E4E8;
+}
+
+.root.theme-light .cover-placeholder-icon {
+    -fx-icon-color: #8C959F;
+}
+
+/* Light Theme Sliders & Player Controls */
+.root.theme-light .player-slider .track {
+    -fx-background-color: #E1E4E8;
+}
+
+.root.theme-light .player-slider:hover .track {
+    -fx-background-color: #D0D7DE;
+}
+
+/* Light Theme Pill Buttons & Your Library Grid */
+.root.theme-light .pill-button {
+    -fx-background-color: #F1F3F5;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .pill-button:hover {
+    -fx-background-color: #E1E4E8;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .pill-button-active {
+    -fx-background-color: #1F2328;
+    -fx-text-fill: #FFFFFF;
+}
+
+.root.theme-light .pill-button-active:hover {
+    -fx-background-color: #333333;
+    -fx-text-fill: #FFFFFF;
+}
+
+.root.theme-light .grid-media-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E1E4E8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+}
+
+.root.theme-light .grid-media-card:hover {
+    -fx-background-color: #F8F9FA;
+    -fx-border-color: #D0D7DE;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.14), 12, 0, 0, 4);
+}
+
+.root.theme-light .grid-card-title {
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .grid-card-subtitle {
+    -fx-text-fill: #656D76;
+}
+
+.root.theme-light .grid-card-cover-frame {
+    -fx-background-color: #F1F3F5;
+}
+
+.root.theme-light .grid-card-edit-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.88);
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+}
+
+.root.theme-light .grid-card-edit-btn .font-icon {
+    -fx-icon-color: #1F2328;
+}
+
+/* Light Theme Selection Toolbar */
+.root.theme-light .selection-toolbar {
+    -fx-background-color: #F1F3F5;
+    -fx-border-color: #D0D7DE;
+}
+
+.root.theme-light .selection-secondary-button {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .selection-secondary-button:hover {
+    -fx-background-color: #EEF2F6;
+    -fx-border-color: #AFB8C1;
+}
+
+.root.theme-light .selection-secondary-button .font-icon {
+    -fx-icon-color: #1F2328;
+}
+
+/* Light Theme Full-Window Expanded Overlay */
+.root.theme-light .now-playing-expanded-overlay {
+    -fx-background-color: #FFFFFF;
+}
+
+.root.theme-light .expanded-cover-frame {
+    -fx-background-color: #F1F3F5;
+    -fx-border-color: #E1E4E8;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+}
+
+.root.theme-light .lyrics-line-inactive {
+    -fx-text-fill: #8C959F;
+}
+
+.root.theme-light .lyrics-offset-box {
+    -fx-background-color: #F6F8FA;
+    -fx-border-color: #D0D7DE;
+}
+
+.root.theme-light .lyrics-offset-label {
+    -fx-text-fill: #656D76;
+}
+
+.root.theme-light .lyrics-offset-btn {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .lyrics-offset-btn:hover {
+    -fx-background-color: #EEF2F6;
+    -fx-border-color: #AFB8C1;
+}
+
+.root.theme-light .drawer-offset-btn {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .drawer-offset-btn:hover {
+    -fx-background-color: #EEF2F6;
+    -fx-border-color: #AFB8C1;
+}
+
+/* Nord Theme */
+.root.theme-nord {
+    -fx-base: #2E3440;
+    -fx-background: #2E3440;
+    -color-bg-default: #2E3440;
+    -color-bg-overlay: #3B4252;
+    -color-bg-subtle: #434C5E;
+    -color-fg-default: #ECEFF4;
+    -color-fg-muted: #D8DEE9;
+    -color-border-default: #4C566A;
+}
+
+.root.theme-nord .sidebar-pane,
+.root.theme-nord .right-drawer,
+.root.theme-nord .now-playing-bar {
+    -fx-background-color: #242933;
+    -fx-border-color: #3B4252;
+}
+
+.root.theme-nord .settings-card {
+    -fx-background-color: #3B4252;
+    -fx-border-color: #4C566A;
+}
+
+.root.theme-nord .settings-card:hover {
+    -fx-background-color: #434C5E;
+}
+
+/* Dracula Theme */
+.root.theme-dracula {
+    -fx-base: #282A36;
+    -fx-background: #282A36;
+    -color-bg-default: #282A36;
+    -color-bg-overlay: #44475A;
+    -color-bg-subtle: #6272A4;
+    -color-fg-default: #F8F8F2;
+    -color-fg-muted: #BD93F9;
+    -color-border-default: #6272A4;
+}
+
+.root.theme-dracula .sidebar-pane,
+.root.theme-dracula .right-drawer,
+.root.theme-dracula .now-playing-bar {
+    -fx-background-color: #1E1F29;
+    -fx-border-color: #44475A;
+}
+
+.root.theme-dracula .settings-card {
+    -fx-background-color: #44475A;
+    -fx-border-color: #6272A4;
+}
+
+.root.theme-dracula .settings-card:hover {
+    -fx-background-color: #555A70;
+}
+
+/* Equalizer & Cast to Device UI */
+.equalizer-bands-box {
+    -fx-background-color: #121212;
+    -fx-background-radius: 8px;
+    -fx-border-color: #282828;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+}
+
+.equalizer-gain-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -localify-accent;
+    -fx-font-weight: 600;
+    -fx-alignment: CENTER;
+    -fx-min-width: 44px;
+}
+
+.equalizer-freq-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #B3B3B3;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+}
+
+.equalizer-slider .thumb {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 50%;
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+}
+
+.equalizer-slider:hover .thumb {
+    -fx-background-color: -localify-accent-hover;
+}
+
+.equalizer-slider .track {
+    -fx-background-color: #2E2E2E;
+    -fx-background-radius: 3px;
+    -fx-pref-width: 4px;
+}
+
+.active-device-card {
+    -fx-background-color: rgba(243, 107, 33, 0.08);
+    -fx-border-color: rgba(243, 107, 33, 0.35);
+}
+
+/* ==========================================================================
+   Playlists & "Your Library" Grid Cards (Matching Gambar 2 - MoLow style)
+   ========================================================================== */
+
+.pill-button {
+    -fx-background-color: #242424;
+    -fx-text-fill: #E0E0E0;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 20px;
+    -fx-padding: 6px 16px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.pill-button:hover {
+    -fx-background-color: #333333;
+    -fx-text-fill: #FFFFFF;
+}
+
+.pill-button-active {
+    -fx-background-color: #FFFFFF;
+    -fx-text-fill: #0A0A0A;
+    -fx-font-weight: bold;
+}
+
+.pill-button-active:hover {
+    -fx-background-color: #E6E6E6;
+    -fx-text-fill: #0A0A0A;
+}
+
+.library-grid-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.library-grid-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.library-grid-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 12px 4px 24px 4px;
+}
+
+.grid-media-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 10px;
+    -fx-border-color: #222222;
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
+    -fx-padding: 12px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 8, 0, 0, 2);
+}
+
+.grid-media-card:hover {
+    -fx-background-color: #242424;
+    -fx-border-color: #363636;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 14, 0, 0, 4);
+}
+
+.grid-card-cover-frame {
+    -fx-background-color: #222222;
+    -fx-background-radius: 8px;
+    -fx-alignment: center;
+}
+
+.grid-card-play-btn {
+    -fx-background-color: -localify-accent;
+    -fx-background-radius: 50%;
+    -fx-min-width: 42px;
+    -fx-min-height: 42px;
+    -fx-max-width: 42px;
+    -fx-max-height: 42px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0, 0, 3);
+    -fx-padding: 0;
+}
+
+.grid-card-play-btn:hover {
+    -fx-background-color: -localify-accent-hover;
+    -fx-scale-x: 1.08;
+    -fx-scale-y: 1.08;
+}
+
+.grid-card-edit-btn {
+    -fx-background-color: rgba(0, 0, 0, 0.68);
+    -fx-background-radius: 50%;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-max-width: 32px;
+    -fx-max-height: 32px;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-radius: 50%;
+}
+
+.grid-card-edit-btn:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.88);
+    -fx-border-color: #FFFFFF;
+}
+
+.grid-card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.grid-card-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #A0A0A0;
+}
+
+/* Light theme dialog & properties support */
+.root.theme-light .prop-section-header {
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .prop-key-label {
+    -fx-text-fill: #57606A;
+}
+
+.root.theme-light .prop-value-field {
+    -fx-background-color: #F6F8FA;
+    -fx-border-color: #D0D7DE;
+    -fx-text-fill: #1F2328;
+}
+
+.root.theme-light .localify-dialog {
+    -fx-background-color: #FFFFFF;
+}
+
+.root.theme-light .localify-dialog > .header-panel {
+    -fx-background-color: #F6F8FA;
+    -fx-border-color: #D0D7DE;
+}
+
+.root.theme-light .localify-dialog > .header-panel .label {
+    -fx-text-fill: #1F2328;
+}
+
+

@@ -5,7 +5,7 @@
 <h1 align="center">Localify</h1>
 
 <p align="center">
-  <strong>Modern, Elegant Desktop Audio Player with Synchronized Lyrics & Discord Rich Presence</strong>
+  <strong>Desktop audio player built with JavaFX featuring synchronized lyrics, Mini Player mode, and Discord Rich Presence.</strong>
 </p>
 
 <p align="center">
@@ -13,96 +13,94 @@
   <img src="https://img.shields.io/badge/JavaFX-21-FF6F00?style=for-the-badge&logo=java&logoColor=white" alt="JavaFX 21" />
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/Discord-Rich%20Presence-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord RPC" />
-  <img src="https://img.shields.io/badge/Theme-Dark%20%7C%20Light%20%7C%20Nord%20%7C%20Dracula-121212?style=for-the-badge" alt="Themes" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
 ---
 
-## 🌟 Tentang Localify
+## Overview
 
-**Localify** adalah aplikasi pemutar musik desktop lokal berbasis **JavaFX 21** dengan desain antarmuka modern yang terinspirasi oleh Spotify. Localify dirancang untuk memberikan pengalaman mendengarkan musik lokal terbaik dengan sinkronisasi lirik otomatis, integrasi Discord Rich Presence, mode Mini Player mengambang (*always-on-top*), serta fleksibilitas kustomisasi tema dan warna aksen.
-
----
-
-## ✨ Fitur Utama
-
-- 🎵 **Pemindaian Koleksi Audio Otomatis**: Mendukung format `.mp3`, `.flac`, `.wav`, dan `.m4a` langsung dari folder `Music` pengguna atau folder kustom pilihan.
-- 🎤 **Lirik Berjalan Tersinkronisasi (`.lrc`)**:
-  - Auto-scroll lirik berjalan dengan penandaan baris aktif secara halus.
-  - Dukungan transliterasi Romaji otomatis untuk lagu Jepang, Korea, dan Asia.
-  - Pencarian lirik online *on-the-fly* via API LRCLIB jika file lirik lokal belum tersedia.
-  - Fitur *"Tambah / Ganti lirik (.lrc)..."* langsung melalui menu klik kanan pada lagu.
-- 🎮 **Discord Rich Presence (RPC)**:
-  - Menampilkan judul lagu, artis, album, cover art, dan durasi berjalan langsung di status profil Discord Anda secara real-time.
-- 🪟 **Mode Mini Player**:
-  - Jendela ringkas tanpa bingkai (*frameless / undecorated*), mengambang selalu di atas jendela lain (*always-on-top*).
-  - Kontrol pemutaran lengkap: seek bar durasi, volume, preview lirik, dan daftar *Playing Next*.
-- 🎨 **Sistem Tema & Aksen Warna**:
-  - Tema: **Spotify Dark**, **Light**, **Nord**, dan **Dracula**.
-  - Warna aksen: **Orange**, **Spotify Green**, **Ocean Blue**, **Royal Purple**, **Crimson**, dsb.
-- ⚡ **Navigasi Cepat & Section Jump**:
-  - Filter cepat per Artis, Album, dan Playlist.
-  - *Section Jump Picker* (`&`, `#`, `A–Z`) untuk melompat langsung ke abjad lagu pilihan.
-  - Fitur multi-seleksi batch dan pemutaran kelompok lagu sekaligus.
-- ℹ️ **Dialog Properties Multi-Kolom**:
-  - Menampilkan informasi metadata lagu dan detail teknis file audio (bitrate, sample rate, channels, encoding, size, modified date) secara berdampingan.
+**Localify** is a local desktop music player built with **JavaFX 21** and a clean interface inspired by modern streaming players. It scans local audio libraries, displays time-synced lyrics, updates your Discord Rich Presence status in real time, and switches seamlessly between full library view and a compact floating Mini Player.
 
 ---
 
-## 🛠️ Stack Teknologi
+## Screenshot
 
-| Komponen | Teknologi | Keterangan |
+<p align="center">
+  <img src="Screenshot%202026-11-12%20065518.png" alt="Localify Your Library View" width="100%" />
+</p>
+
+---
+
+## Key Features
+
+- **Automatic Library Scanning**: Scans `.mp3`, `.flac`, `.wav`, and `.m4a` audio files from the user's `Music` folder or a custom directory, extracting ID3 tags and embedded cover artwork with JAudioTagger.
+- **Synchronized Lyrics (.lrc)**:
+  - Smooth auto-scrolling lyrics with active line highlighting.
+  - Automatic transliteration to Romaji for Japanese and Asian tracks.
+  - On-the-fly online `.lrc` lookup via LRCLIB when no local lyrics file is found.
+  - Manual `.lrc` file assignment directly from each track's right-click context menu.
+- **Discord Rich Presence (RPC)**: Displays current track title, artist, album, and live playback timestamps on your Discord profile over local IPC.
+- **Mini Player Mode**: Frameless, always-on-top compact window with seek bar, volume slider, lyrics toggle, and an upcoming queue view.
+- **Themes and Accent Customization**: Switch between **Dark**, **Light**, **Nord**, and **Dracula** themes with customizable accent colors (Orange, Green, Blue, Purple, Crimson, and more).
+- **Fast Navigation and Batch Controls**: Browse by Songs, Albums, Artists, or Playlists; jump alphabetically with the Section Jump Picker (`&`, `#`, `A-Z`); and select multiple tracks for batch playback.
+- **Multi-Column Properties Inspector**: View song metadata alongside audio encoding details (format, bitrate, sample rate, channels, size, and modified timestamp) side by side.
+- **Playlist Persistence**: Create and manage playlists stored in standard M3U8 format.
+
+---
+
+## Technology Stack
+
+| Component | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Bahasa & Runtime** | Java 17+ (JDK 21 / 25) | Core logic & high-performance NIO file scanning |
-| **Framework GUI** | JavaFX 21 (`controls`, `fxml`, `media`) | UI layout & cross-platform audio engine |
-| **UI Components** | AtlantaFX 2.0.1 | Modern base dark/light design system |
-| **Icons** | Ikonli (`materialdesign2`) | Vektor Material Design glyphs |
-| **Audio Metadata** | JAudioTagger 3.0.1 | Ekstraksi ID3 tags (v1/v2), cover art, dan properties audio |
-| **Discord RPC** | Discord RPC (IPC / Named Pipes) | Koneksi real-time ke Discord desktop client |
-| **Installer** | Inno Setup 6 & jpackage | Pembuatan installer Windows mandiri (`.exe`) dengan JRE terpaket |
+| **Language & Runtime** | Java 17+ (JDK 21 / 25) | Core application logic and NIO file scanning |
+| **GUI & Audio Engine** | JavaFX 21 (`controls`, `fxml`, `media`) | User interface rendering and media playback |
+| **UI Styling** | AtlantaFX 2.0.1 | Base theme foundation and custom CSS stylesheets |
+| **Vector Icons** | Ikonli (`materialdesign2`) | Material Design icons across player controls and menus |
+| **Metadata Parser** | JAudioTagger 3.0.1 | ID3 tag extraction, embedded cover art, and audio technical info |
+| **Discord Integration** | Discord RPC (IPC / Named Pipes) | Real-time status updates with the desktop Discord client |
+| **Windows Packaging** | `jpackage` & Inno Setup 6 | Self-contained Windows installer (`Localify-Setup-1.0.exe`) |
 
 ---
 
-## 🚀 Panduan Menjalankan & Membangun (Build)
+## Build and Installation
 
-### Prasyarat
-- **JDK 17 atau lebih baru** (JDK 21 LTS disarankan)
+### Prerequisites
+- **JDK 17 or newer** (JDK 21 LTS recommended)
 - Git
 
-### 1. Menjalankan dalam Mode Pengembangan
+### 1. Run in Development Mode
 ```bash
-# Clone repositori
-git clone https://github.com/localify/localify.git
+# Clone the repository
+git clone https://github.com/Alfiannr234/localify.git
 cd localify
 
-# Jalankan via Maven Wrapper
+# Run using the Maven Wrapper
 .\mvnw.cmd clean javafx:run
 ```
 
-### 2. Membangun Executable JAR
+### 2. Build Shaded Executable JAR
 ```bash
 .\mvnw.cmd clean package -DskipTests
 ```
-File fat/shaded JAR yang dapat langsung dijalankan akan dihasilkan di `target/localify-player-1.0.jar`.
+The compiled shaded JAR is output to `target/localify-player-1.0.jar`.
 
-### 3. Membangun Windows Installer Mandiri (`.exe`)
-Proyek ini telah dilengkapi dengan script otomatis:
+### 3. Build Windows Installer (.exe)
+Run the automated build script to compile the JAR, create the `jpackage` app-image, and package the Inno Setup installer:
 ```bash
-# Jalankan script pembuat installer lengkap
 .\build-installer.bat
 ```
-Hasil installer akan tersedia di:
-`dist\installer\Localify-Setup-1.0.exe`
+The generated installer is placed at `dist/installer/Localify-Setup-1.0.exe`.
 
-### 4. Pembaruan Cepat (In-Place Fast Update)
-Jika Anda sudah menginstal Localify di Windows dan ingin memperbarui file executable serta JAR tanpa perlu melakukan instalasi ulang:
+### 4. Fast In-Place Update (Installed App)
+If Localify is already installed locally and you want to update the JAR and executable without reinstalling:
 ```bash
 .\update-installed-app.bat
 ```
 
 ---
 
-## 📁 Struktur Direktori Proyek
+## Project Structure
 
 ```text
 localify/
@@ -110,26 +108,28 @@ localify/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/localify/
-│   │   │   ├── App.java              # Entry point aplikasi JavaFX
-│   │   │   ├── controller/           # Controller FXML (Main, MiniPlayer, ContextMenu)
-│   │   │   ├── model/                # Model data (Track, LyricLine, Playlist)
-│   │   │   └── service/              # Service (Audio, Scanner, LrcParser, Discord, Theme)
+│   │   │   ├── App.java              # JavaFX application entry point
+│   │   │   ├── controller/           # FXML controllers (Main, MiniPlayer, ContextMenu)
+│   │   │   ├── model/                # Data models (Track, LyricLine, Playlist)
+│   │   │   └── service/              # Core services (Audio, Scanner, LrcParser, Discord, Theme)
 │   │   └── resources/com/localify/
-│   │       ├── css/                  # Styling tema (spotify-dark.css)
-│   │       ├── fxml/                 # Layout antarmuka (main-view, mini-player)
-│   │       └── images/               # Multi-resolution icons & assets
-│   └── test/                         # Unit & end-to-end smoke verification runner
-├── build-installer.bat               # Otomasi build JAR, jpackage, & Inno Setup
-├── update-installed-app.bat          # Fast in-place updater script
-├── localify-installer.iss            # Skrip kompilasi Inno Setup
-├── localify.ico                      # Multi-resolution application icon
-├── localify.png                      # High-resolution logo
-├── pom.xml                           # Definisi dependensi & build Maven
-└── README.md                         # Dokumentasi proyek
+│   │       ├── css/                  # Application themes (spotify-dark.css)
+│   │       ├── fxml/                 # UI layouts (main-view.fxml, mini-player.fxml)
+│   │       └── images/               # Multi-resolution application icons
+│   └── test/                         # UI and service smoke verification runner
+├── Screenshot 2026-11-12 065518.png  # Application library view screenshot
+├── build-installer.bat               # Build script for JAR, app-image, and installer
+├── update-installed-app.bat          # In-place update script for installed builds
+├── localify-installer.iss            # Inno Setup installer configuration
+├── localify.ico                      # Multi-resolution Windows icon
+├── localify.png                      # High-resolution application logo
+├── LICENSE                           # MIT License
+├── pom.xml                           # Maven project configuration
+└── README.md                         # Project documentation
 ```
 
 ---
 
-## 📄 Lisensi
+## License
 
-Didistribusikan di bawah lisensi MIT. Silakan gunakan, pelajari, dan modifikasi secara bebas.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

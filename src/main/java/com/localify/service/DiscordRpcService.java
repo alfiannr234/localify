@@ -242,7 +242,6 @@ public class DiscordRpcService {
                 Track t = p.track();
                 String title = escapeJson(t.getTitle());
                 String artist = escapeJson(t.getDisplayArtist());
-                String album = t.hasAlbum() ? escapeJson(t.getAlbum()) : "";
                 long nowMs = System.currentTimeMillis();
                 long startMs = Math.max(0, nowMs - (long) (p.currentSeconds() * 1000));
 
@@ -264,13 +263,15 @@ public class DiscordRpcService {
                     artUrl = AutoCoverArtService.findArtworkUrlOnline(t);
                 }
 
-                // Clean modern artwork without Spotify logo
-                String fallbackCover = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=512&q=80";
-                String displayCover = (artUrl != null && !artUrl.isBlank()) ? artUrl : fallbackCover;
+                String localifyLogoUrl = "https://raw.githubusercontent.com/Alfiannr234/localify/main/localify.png";
+                String displayCover = (artUrl != null && !artUrl.isBlank()) ? artUrl : localifyLogoUrl;
 
                 act.append(",\"assets\":{");
-                act.append("\"large_image\":\"").append(escapeJson(displayCover)).append("\",");
-                act.append("\"large_text\":\"").append(album.isBlank() ? (title + " - " + artist) : album).append("\"");
+                act.append("\"large_image\":\"").append(escapeJson(displayCover)).append("\"");
+                if (!localifyLogoUrl.equals(displayCover)) {
+                    act.append(",\"small_image\":\"").append(localifyLogoUrl).append("\"");
+                    act.append(",\"small_text\":\"Localify\"");
+                }
                 act.append("}}");
 
                 frameJson = String.format(

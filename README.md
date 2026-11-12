@@ -26,9 +26,13 @@
 
 ## Screenshot
 
-<p align="center">
-  <img src="Screenshot%202026-11-12%20065518.png" alt="Localify Your Library View" width="100%" />
-</p>
+<details>
+  <summary>Click to view screenshot</summary>
+  <p align="center">
+    <br>
+    <img src="Screenshot%202026-11-12%20065518.png" alt="Localify Your Library View" width="100%" />
+  </p>
+</details>
 
 ---
 

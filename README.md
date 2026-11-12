@@ -5,7 +5,7 @@
 <h1 align="center">Localify</h1>
 
 <p align="center">
-  <strong>Desktop audio player built with JavaFX featuring synchronized lyrics, Mini Player mode, and Discord Rich Presence.</strong>
+  <strong>Desktop local audio player featuring synchronized lyrics, Mini Player mode, and Discord Rich Presence.</strong>
 </p>
 
 <p align="center">

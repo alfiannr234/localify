@@ -5,7 +5,7 @@
 <h1 align="center">Localify</h1>
 
 <p align="center">
-  <strong>Desktop audio player built with JavaFX featuring synchronized lyrics, Mini Player mode, and Discord Rich Presence.</strong>
+  <strong>Desktop local audio player featuring synchronized lyrics, Mini Player mode, and Discord Rich Presence.</strong>
 </p>
 
 <p align="center">
@@ -27,7 +27,8 @@
 ## Screenshot
 
 <p align="center">
-  <img src="Screenshot%202026-11-12%20065518.png" alt="Localify Your Library View" width="100%" />
+  <img width="1258" height="688" alt="Screenshot" src="https://github.com/user-attachments/assets/c777ecaf-7ae2-4e12-adf6-e433d77e2cf1" width="100%"/>
+
 </p>
 
 ---

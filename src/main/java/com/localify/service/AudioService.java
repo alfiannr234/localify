@@ -600,6 +600,9 @@ public class AudioService {
     private void loadLyrics(Track track) {
         currentLyrics.clear();
         activeLyricIndex.set(-1);
+        if (settingsService != null && track != null) {
+            this.lyricsOffsetSeconds.set(settingsService.getEffectiveLyricsOffset(track));
+        }
         Optional<Path> lrc = lrcParserService.findLrcFor(track.getPath());
         if (lrc.isEmpty()) {
             lyricStatusMessage.set("Searching online synced lyrics...");
@@ -809,8 +812,17 @@ public class AudioService {
     public void setSettingsService(SettingsService settingsService) {
         this.settingsService = settingsService;
         if (settingsService != null) {
-            this.lyricsOffsetSeconds.set(settingsService.getLyricsOffset());
+            Track active = currentTrack.get();
+            if (active != null) {
+                this.lyricsOffsetSeconds.set(settingsService.getEffectiveLyricsOffset(active));
+            } else {
+                this.lyricsOffsetSeconds.set(settingsService.getLyricsOffset());
+            }
         }
+    }
+
+    public SettingsService getSettingsService() {
+        return settingsService;
     }
 
     public DoubleProperty lyricsOffsetSecondsProperty() {
@@ -824,8 +836,13 @@ public class AudioService {
     public void setLyricsOffsetSeconds(double offset) {
         double clamped = Math.max(-5.0, Math.min(5.0, Math.round(offset * 100.0) / 100.0));
         this.lyricsOffsetSeconds.set(clamped);
+        Track active = currentTrack.get();
         if (settingsService != null) {
-            settingsService.setLyricsOffset(clamped);
+            if (active != null) {
+                settingsService.setTrackLyricsOffset(active, clamped);
+            } else {
+                settingsService.setLyricsOffset(clamped);
+            }
         }
         double current = currentTimeSeconds.get();
         if (lastAnchorNano > 0) {
@@ -834,6 +851,30 @@ public class AudioService {
         }
         activeLyricIndex.set(-1);
         updateActiveLyric(current);
+    }
+
+    public void setTrackLyricsOffsetSeconds(Track track, double offset) {
+        double clamped = Math.max(-5.0, Math.min(5.0, Math.round(offset * 100.0) / 100.0));
+        if (settingsService != null && track != null) {
+            settingsService.setTrackLyricsOffset(track, clamped);
+        }
+        if (track != null && track.equals(currentTrack.get())) {
+            this.lyricsOffsetSeconds.set(clamped);
+            activeLyricIndex.set(-1);
+            updateActiveLyric(currentTimeSeconds.get());
+        }
+    }
+
+    public void resetTrackLyricsOffset(Track track) {
+        if (settingsService != null && track != null) {
+            settingsService.removeTrackLyricsOffset(track);
+        }
+        if (track != null && track.equals(currentTrack.get())) {
+            double fallback = settingsService != null ? settingsService.getLyricsOffset() : SettingsService.DEFAULT_LYRICS_OFFSET;
+            this.lyricsOffsetSeconds.set(fallback);
+            activeLyricIndex.set(-1);
+            updateActiveLyric(currentTimeSeconds.get());
+        }
     }
 
     public void setPlaybackRate(double rate) {

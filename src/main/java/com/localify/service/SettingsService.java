@@ -1,10 +1,13 @@
 package com.localify.service;
 
+import com.localify.model.Track;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -24,6 +27,7 @@ public class SettingsService {
 
     private static final String PREF_LYRICS_OFFSET = "lyrics.sync.offset";
     public static final double DEFAULT_LYRICS_OFFSET = 0.30; // 300ms lead anticipation to eliminate delay
+    private static final String PREF_TRACK_OFFSET_PREFIX = "lyrics.track_offset.";
 
     private final Path configFile;
     private final Properties properties = new Properties();
@@ -138,6 +142,61 @@ public class SettingsService {
 
     public synchronized void setLyricsOffset(double offsetSeconds) {
         properties.setProperty(PREF_LYRICS_OFFSET, String.format(java.util.Locale.US, "%.2f", offsetSeconds));
+        save();
+    }
+
+    private String getTrackKey(Track track) {
+        if (track == null || track.getPath() == null) return "";
+        return track.getPath().toAbsolutePath().normalize().toString().replace('\\', '/').toLowerCase(Locale.ROOT);
+    }
+
+    private String getTrackFileKey(Track track) {
+        if (track == null || track.getFileName() == null) return "";
+        return track.getFileName().toLowerCase(Locale.ROOT);
+    }
+
+    public synchronized boolean hasTrackLyricsOffset(Track track) {
+        if (track == null) return false;
+        String pKey = PREF_TRACK_OFFSET_PREFIX + "path." + getTrackKey(track);
+        String fKey = PREF_TRACK_OFFSET_PREFIX + "file." + getTrackFileKey(track);
+        return properties.containsKey(pKey) || properties.containsKey(fKey);
+    }
+
+    public synchronized double getEffectiveLyricsOffset(Track track) {
+        if (track == null) {
+            return getLyricsOffset();
+        }
+        String pKey = PREF_TRACK_OFFSET_PREFIX + "path." + getTrackKey(track);
+        String val = properties.getProperty(pKey);
+        if (val == null || val.isBlank()) {
+            String fKey = PREF_TRACK_OFFSET_PREFIX + "file." + getTrackFileKey(track);
+            val = properties.getProperty(fKey);
+        }
+        if (val != null && !val.isBlank()) {
+            try {
+                return Double.parseDouble(val.strip());
+            } catch (NumberFormatException ignored) {}
+        }
+        return getLyricsOffset();
+    }
+
+    public synchronized void setTrackLyricsOffset(Track track, double offsetSeconds) {
+        if (track == null) return;
+        double clamped = Math.max(-5.0, Math.min(5.0, Math.round(offsetSeconds * 100.0) / 100.0));
+        String formatted = String.format(java.util.Locale.US, "%.2f", clamped);
+        String pKey = PREF_TRACK_OFFSET_PREFIX + "path." + getTrackKey(track);
+        String fKey = PREF_TRACK_OFFSET_PREFIX + "file." + getTrackFileKey(track);
+        properties.setProperty(pKey, formatted);
+        properties.setProperty(fKey, formatted);
+        save();
+    }
+
+    public synchronized void removeTrackLyricsOffset(Track track) {
+        if (track == null) return;
+        String pKey = PREF_TRACK_OFFSET_PREFIX + "path." + getTrackKey(track);
+        String fKey = PREF_TRACK_OFFSET_PREFIX + "file." + getTrackFileKey(track);
+        properties.remove(pKey);
+        properties.remove(fKey);
         save();
     }
 }

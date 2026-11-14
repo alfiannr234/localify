@@ -388,22 +388,32 @@
                         <!-- Lyrics Timing Offset -->
                         <HBox alignment="CENTER_LEFT" spacing="16" styleClass="settings-card">
                             <FontIcon iconLiteral="mdi2s-sync" iconSize="22" styleClass="settings-card-icon"/>
-                            <VBox spacing="2" HBox.hgrow="ALWAYS">
-                                <Label text="Sinkronisasi lirik (Timing Offset)" styleClass="settings-card-title"/>
-                                <Label text="Atur ketepatan waktu lirik. Nilai (+) membuat lirik muncul lebih cepat jika vokal mendahului teks" styleClass="settings-card-subtitle"/>
+                            <VBox spacing="3" HBox.hgrow="ALWAYS" minWidth="180">
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label text="Sinkronisasi lirik (Timing Offset)" styleClass="settings-card-title"/>
+                                    <Label fx:id="settingsLyricsTrackBadge" text="Lagu Aktif" styleClass="count-pill"
+                                           style="-fx-background-color: -localify-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 10px;"
+                                           visible="false" managed="false"/>
+                                </HBox>
+                                <Label text="Atur ketepatan waktu lirik (- = lebih lambat, + = lebih cepat)"
+                                       wrapText="true" maxWidth="420" styleClass="settings-card-subtitle"/>
+                                <Label fx:id="settingsLyricsTrackDetailLabel"
+                                       text="Tidak ada lagu diputar (mengatur offset default)"
+                                       wrapText="true" maxWidth="420" styleClass="settings-card-subtitle"
+                                       style="-fx-font-size: 11px; -fx-text-fill: -localify-accent;"/>
                             </VBox>
-                            <HBox alignment="CENTER_RIGHT" spacing="6">
-                                <Button text="-0.5s" onAction="#handleNudgeLyricsOffsetMinusLarge"
-                                        accessibleText="Kurangi offset 0.5 detik" styleClass="secondary-button"/>
-                                <Button text="-0.2s" onAction="#handleNudgeLyricsOffsetMinus"
-                                        accessibleText="Kurangi offset 0.2 detik" styleClass="secondary-button"/>
-                                <Label fx:id="settingsLyricsOffsetLabel" text="+0.3s" styleClass="count-pill"/>
-                                <Button text="+0.2s" onAction="#handleNudgeLyricsOffsetPlus"
-                                        accessibleText="Tambah offset 0.2 detik" styleClass="secondary-button"/>
-                                <Button text="+0.5s" onAction="#handleNudgeLyricsOffsetPlusLarge"
-                                        accessibleText="Tambah offset 0.5 detik" styleClass="secondary-button"/>
-                                <Button text="Reset (0s)" onAction="#handleResetLyricsOffset"
-                                        accessibleText="Reset offset lirik" styleClass="secondary-button"/>
+                            <HBox alignment="CENTER_RIGHT" spacing="5" minWidth="-Infinity" HBox.hgrow="NEVER">
+                                <Button text="-0.2s" onAction="#handleNudgeLyricsOffsetMinusLarge"
+                                        accessibleText="Perlambat lirik 0.2 detik" minWidth="44" prefWidth="44" styleClass="secondary-button"/>
+                                <Button text="-0.1s" onAction="#handleNudgeLyricsOffsetMinus"
+                                        accessibleText="Perlambat lirik 0.1 detik" minWidth="44" prefWidth="44" styleClass="secondary-button"/>
+                                <Label fx:id="settingsLyricsOffsetLabel" text="+0.30s" minWidth="65" prefWidth="68" alignment="CENTER" styleClass="count-pill"/>
+                                <Button text="+0.1s" onAction="#handleNudgeLyricsOffsetPlus"
+                                        accessibleText="Percepat lirik 0.1 detik" minWidth="44" prefWidth="44" styleClass="secondary-button"/>
+                                <Button text="+0.2s" onAction="#handleNudgeLyricsOffsetPlusLarge"
+                                        accessibleText="Percepat lirik 0.2 detik" minWidth="44" prefWidth="44" styleClass="secondary-button"/>
+                                <Button text="Reset" onAction="#handleResetLyricsOffset"
+                                        accessibleText="Reset offset lirik" minWidth="50" prefWidth="52" styleClass="secondary-button"/>
                             </HBox>
                         </HBox>
                     </VBox>
@@ -483,6 +493,12 @@
                                   accessibleText="Show playing queue tab" styleClass="tab-toggle"/>
 
                     <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="drawerSyncLyricsButton" onAction="#handleDrawerSyncLyrics"
+                            accessibleText="Atur sinkronisasi waktu lirik" styleClass="icon-button-subtle">
+                        <tooltip><Tooltip text="Atur sinkronisasi waktu lirik lagu ini"/></tooltip>
+                        <graphic><FontIcon iconLiteral="mdi2s-sync" iconSize="15" iconColor="#B3B3B3"/></graphic>
+                    </Button>
 
                     <Button fx:id="reloadLyricsButton" onAction="#handleReloadLyrics"
                             accessibleText="Reload lyrics from disk" styleClass="icon-button-subtle">
@@ -661,6 +677,12 @@
                 <!-- Sub-bar: Ganti File Lirik button -->
                 <HBox alignment="CENTER_RIGHT" spacing="12" styleClass="expanded-lyrics-subbar">
                     <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="expandedSyncLyricsButton" onAction="#handleExpandedSyncLyrics"
+                            text="Sinkronisasi lirik..." styleClass="expanded-change-lrc-button">
+                        <graphic><FontIcon iconLiteral="mdi2s-sync" iconSize="15"/></graphic>
+                        <tooltip><Tooltip text="Atur offset timing lirik lagu ini"/></tooltip>
+                    </Button>
 
                     <Button fx:id="expandedChangeLrcButton" onAction="#handleChangeLyricsFile"
                             text="Ganti file lirik (.lrc)..." styleClass="expanded-change-lrc-button">

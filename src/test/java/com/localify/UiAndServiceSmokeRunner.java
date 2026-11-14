@@ -505,6 +505,21 @@ public class UiAndServiceSmokeRunner {
                                 assertTrue(Math.abs(audioService.getLyricsOffsetSeconds() - 0.40) < 0.001, "Lyrics offset updated to +0.40s");
                                 audioService.setLyricsOffsetSeconds(initialOffset);
 
+                                // Verify per-track lyrics offset storage and effective resolution
+                                Track currentTk = audioService.getCurrentTrack();
+                                Track testTrack = currentTk != null ? currentTk : new Track(Path.of("test_track_song.mp3"), "Test Song", "Test Artist", "Test Album", 180.0);
+                                settingsService.setTrackLyricsOffset(testTrack, -0.20);
+                                assertTrue(settingsService.hasTrackLyricsOffset(testTrack), "Track has custom offset");
+                                assertTrue(Math.abs(settingsService.getEffectiveLyricsOffset(testTrack) - (-0.20)) < 0.001, "Effective lyrics offset is -0.20s for custom track");
+                                settingsService.removeTrackLyricsOffset(testTrack);
+                                assertTrue(!settingsService.hasTrackLyricsOffset(testTrack), "Track custom offset removed");
+                                assertTrue(Math.abs(settingsService.getEffectiveLyricsOffset(testTrack) - settingsService.getLyricsOffset()) < 0.001, "Fell back to global default offset");
+
+                                Button drawerSyncBtn = (Button) mainScene.lookup("#drawerSyncLyricsButton");
+                                Button expSyncBtn = (Button) mainScene.lookup("#expandedSyncLyricsButton");
+                                assertTrue(drawerSyncBtn != null, "drawerSyncLyricsButton exists in drawer header");
+                                assertTrue(expSyncBtn != null, "expandedSyncLyricsButton exists in expanded lyrics subbar");
+
                                 Button expMoreBtn = (Button) mainScene.lookup("#expandedMoreOptionsButton");
                                 assertTrue(expMoreBtn != null, "expandedMoreOptionsButton exists in expanded overlay");
 

@@ -137,6 +137,9 @@ public class ContextMenuBuilder {
         MenuItem changeLrcItem = item("Tambah / Ganti lirik (.lrc)...", "mdi2t-text-box-search-outline",
                 () -> handler.onChangeLyrics(track));
 
+        MenuItem syncLyricsItem = item("Sinkronisasi lirik (Offset)...", "mdi2s-sync",
+                () -> showLyricsOffsetDialog(track, owner));
+
         MenuItem propertiesItem = item("Properties", "mdi2i-information-outline",
                 () -> showPropertiesDialog(track, owner));
 
@@ -156,6 +159,7 @@ public class ContextMenuBuilder {
                 new SeparatorMenuItem(),
                 editInfoItem,
                 changeLrcItem,
+                syncLyricsItem,
                 propertiesItem,
                 new SeparatorMenuItem(),
                 removeItem
@@ -319,6 +323,113 @@ public class ContextMenuBuilder {
             handler.onMetadataUpdated(track);
             handler.onStatusMessage("Saved metadata for \"" + track.getTitle() + "\".");
         }
+    }
+
+    public void showLyricsOffsetDialog(Track track, Window owner) {
+        if (track == null) return;
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Sinkronisasi Lirik");
+        dialog.setHeaderText("Timing Lirik: " + track.getTitle());
+        configureOwnerAndStyle(dialog, owner);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        VBox box = new VBox(14);
+        box.setPadding(new Insets(16));
+        box.setPrefWidth(440);
+
+        Label infoLabel = new Label("Atur offset waktu kemunculan lirik untuk lagu ini jika vokal mendahului atau terlambat dari lirik.\nNilai (-) membuat lirik muncul lebih lambat/delay, nilai (+) membuat lirik lebih cepat.");
+        infoLabel.setWrapText(true);
+        infoLabel.setStyle("-fx-text-fill: #B3B3B3; -fx-font-size: 12px;");
+
+        SettingsService settings = audioService != null ? audioService.getSettingsService() : null;
+
+        Label offsetLabel = new Label();
+        offsetLabel.getStyleClass().add("count-pill");
+        offsetLabel.setStyle("-fx-background-color: #1A1A1A; -fx-border-color: -localify-accent; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-text-fill: -localify-accent; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 4 12 4 12; -fx-min-width: 90px; -fx-alignment: center;");
+
+        Label statusHint = new Label();
+        statusHint.setStyle("-fx-text-fill: #9E9E9E; -fx-font-size: 11.5px;");
+
+        Runnable updateUI = () -> {
+            double off = settings != null ? settings.getEffectiveLyricsOffset(track) : 0.0;
+            boolean custom = settings != null && settings.hasTrackLyricsOffset(track);
+            String sign = off > 0 ? "+" : "";
+            offsetLabel.setText(String.format(java.util.Locale.US, "%s%.2fs", sign, off));
+            if (custom) {
+                statusHint.setText("Tersimpan khusus untuk lagu ini");
+            } else {
+                statusHint.setText("Mengikuti default global player");
+            }
+        };
+        updateUI.run();
+
+        HBox btnRow = new HBox(6);
+        btnRow.setAlignment(Pos.CENTER);
+
+        Button minus02 = new Button("-0.2s");
+        minus02.getStyleClass().add("secondary-button");
+        minus02.setMinWidth(46);
+
+        Button minus01 = new Button("-0.1s");
+        minus01.getStyleClass().add("secondary-button");
+        minus01.setMinWidth(46);
+
+        Button plus01 = new Button("+0.1s");
+        plus01.getStyleClass().add("secondary-button");
+        plus01.setMinWidth(46);
+
+        Button plus02 = new Button("+0.2s");
+        plus02.getStyleClass().add("secondary-button");
+        plus02.setMinWidth(46);
+
+        minus02.setOnAction(e -> {
+            double off = settings != null ? settings.getEffectiveLyricsOffset(track) : 0.0;
+            double next = Math.round((off - 0.20) * 100.0) / 100.0;
+            if (audioService != null) audioService.setTrackLyricsOffsetSeconds(track, next);
+            updateUI.run();
+        });
+
+        minus01.setOnAction(e -> {
+            double off = settings != null ? settings.getEffectiveLyricsOffset(track) : 0.0;
+            double next = Math.round((off - 0.10) * 100.0) / 100.0;
+            if (audioService != null) audioService.setTrackLyricsOffsetSeconds(track, next);
+            updateUI.run();
+        });
+
+        plus01.setOnAction(e -> {
+            double off = settings != null ? settings.getEffectiveLyricsOffset(track) : 0.0;
+            double next = Math.round((off + 0.10) * 100.0) / 100.0;
+            if (audioService != null) audioService.setTrackLyricsOffsetSeconds(track, next);
+            updateUI.run();
+        });
+
+        plus02.setOnAction(e -> {
+            double off = settings != null ? settings.getEffectiveLyricsOffset(track) : 0.0;
+            double next = Math.round((off + 0.20) * 100.0) / 100.0;
+            if (audioService != null) audioService.setTrackLyricsOffsetSeconds(track, next);
+            updateUI.run();
+        });
+
+        btnRow.getChildren().addAll(minus02, minus01, offsetLabel, plus01, plus02);
+
+        HBox actionRow = new HBox(10);
+        actionRow.setAlignment(Pos.CENTER);
+
+        Button resetBtn = new Button("Gunakan Default Global");
+        resetBtn.getStyleClass().add("secondary-button");
+        resetBtn.setOnAction(e -> {
+            if (audioService != null) audioService.resetTrackLyricsOffset(track);
+            updateUI.run();
+        });
+
+        actionRow.getChildren().addAll(resetBtn);
+
+        VBox centerBox = new VBox(8, btnRow, statusHint, actionRow);
+        centerBox.setAlignment(Pos.CENTER);
+
+        box.getChildren().addAll(infoLabel, centerBox);
+        dialog.getDialogPane().setContent(box);
+        dialog.showAndWait();
     }
 
     public void showPropertiesDialog(Track track, Window owner) {

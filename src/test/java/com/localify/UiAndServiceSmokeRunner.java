@@ -496,9 +496,11 @@ public class UiAndServiceSmokeRunner {
                                 assertTrue(coverContainer.isVisible() && !lyricsBox.isVisible(), "Switched back to Cover Art view via lyricsToggleBtn");
 
                                 Label settingsOffsetLbl = (Label) mainScene.lookup("#settingsLyricsOffsetLabel");
+                                TextField settingsOffsetField = (TextField) mainScene.lookup("#settingsLyricsOffsetField");
                                 Label expOffsetLbl = (Label) mainScene.lookup("#expandedLyricsOffsetLabel");
                                 Label drawerOffsetLbl = (Label) mainScene.lookup("#drawerLyricsOffsetLabel");
                                 assertTrue(settingsOffsetLbl != null, "settingsLyricsOffsetLabel exists in Settings view");
+                                assertTrue(settingsOffsetField != null, "settingsLyricsOffsetField exists in Settings view");
                                 assertTrue(expOffsetLbl == null && drawerOffsetLbl == null, "Lyrics offset badges removed from full lyrics view and drawer header per user request");
                                 double initialOffset = audioService.getLyricsOffsetSeconds();
                                 audioService.setLyricsOffsetSeconds(0.40);

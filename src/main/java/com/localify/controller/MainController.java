@@ -322,8 +322,7 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
     @FXML private Button expandedMoreOptionsButton;
 
     @FXML private Label settingsLyricsOffsetLabel;
-    @FXML private Label settingsLyricsTrackBadge;
-    @FXML private Label settingsLyricsTrackDetailLabel;
+    @FXML private TextField settingsLyricsOffsetField;
     @FXML private Button drawerSyncLyricsButton;
     @FXML private Button expandedSyncLyricsButton;
 
@@ -2813,6 +2812,13 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
             audioService.lyricsOffsetSecondsProperty().addListener((obs, oldV, newV) -> updateLyricsOffsetDisplay());
             audioService.currentTrackProperty().addListener((obs, oldV, newV) -> updateLyricsOffsetDisplay());
         }
+        if (settingsLyricsOffsetField != null) {
+            settingsLyricsOffsetField.focusedProperty().addListener((obs, oldV, focused) -> {
+                if (!focused) {
+                    handleCommitLyricsOffsetInput();
+                }
+            });
+        }
         updateLyricsOffsetDisplay();
     }
 
@@ -2948,7 +2954,7 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
 
     @FXML
     private void handleNudgeLyricsOffsetMinusLarge() {
-        adjustLyricsOffset(-0.20);
+        adjustLyricsOffset(-0.10);
     }
 
     @FXML
@@ -2963,7 +2969,29 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
 
     @FXML
     private void handleNudgeLyricsOffsetPlusLarge() {
-        adjustLyricsOffset(+0.20);
+        adjustLyricsOffset(+0.10);
+    }
+
+    @FXML
+    private void handleCommitLyricsOffsetInput() {
+        if (settingsLyricsOffsetField == null || audioService == null) return;
+        String raw = settingsLyricsOffsetField.getText();
+        if (raw == null || raw.isBlank()) {
+            audioService.setLyricsOffsetSeconds(0.0);
+            updateLyricsOffsetDisplay();
+            return;
+        }
+        String cleaned = raw.replace("s", "").replace("sec", "").replace("detik", "").strip();
+        if (cleaned.startsWith("+")) {
+            cleaned = cleaned.substring(1).strip();
+        }
+        try {
+            double parsed = Double.parseDouble(cleaned);
+            double clamped = Math.max(-5.0, Math.min(5.0, Math.round(parsed * 100.0) / 100.0));
+            audioService.setLyricsOffsetSeconds(clamped);
+        } catch (NumberFormatException ignored) {
+        }
+        updateLyricsOffsetDisplay();
     }
 
     @FXML
@@ -2972,14 +3000,10 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
             Track active = audioService.getCurrentTrack();
             if (active != null && settingsService != null && settingsService.hasTrackLyricsOffset(active)) {
                 audioService.resetTrackLyricsOffset(active);
-                updateLyricsOffsetDisplay();
-                showStatusToast("Offset lagu \"" + active.getTitle() + "\" direset ke default global ("
-                        + String.format(java.util.Locale.US, "%+.2fs", settingsService.getLyricsOffset()) + ")");
             } else {
                 audioService.setLyricsOffsetSeconds(0.0);
-                updateLyricsOffsetDisplay();
-                showStatusToast("Offset lirik direset ke 0.00s (Normal)");
             }
+            updateLyricsOffsetDisplay();
         }
     }
 
@@ -2989,45 +3013,18 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
             double updated = Math.round((current + delta) * 100.0) / 100.0;
             audioService.setLyricsOffsetSeconds(updated);
             updateLyricsOffsetDisplay();
-            Track active = audioService.getCurrentTrack();
-            String hint = updated > 0 ? " (lebih cepat)" : (updated < 0 ? " (lebih lambat)" : "");
-            String formatted = String.format(java.util.Locale.US, "%+.2fs%s", updated, hint);
-            if (active != null) {
-                showStatusToast("Offset lagu \"" + active.getTitle() + "\": " + formatted + " (tersimpan)");
-            } else {
-                showStatusToast("Offset default global: " + formatted);
-            }
         }
     }
 
     private void updateLyricsOffsetDisplay() {
         if (audioService == null) return;
-        Track active = audioService.getCurrentTrack();
         double offset = audioService.getLyricsOffsetSeconds();
         String formatted = String.format(java.util.Locale.US, "%+.2fs", offset);
+        if (settingsLyricsOffsetField != null && !settingsLyricsOffsetField.isFocused()) {
+            settingsLyricsOffsetField.setText(formatted);
+        }
         if (settingsLyricsOffsetLabel != null) {
             settingsLyricsOffsetLabel.setText(formatted);
-        }
-        if (settingsLyricsTrackDetailLabel != null) {
-            if (active != null) {
-                boolean hasCustom = settingsService != null && settingsService.hasTrackLyricsOffset(active);
-                if (hasCustom) {
-                    settingsLyricsTrackDetailLabel.setText("Lagu aktif: \"" + active.getTitle() + "\" • Tersimpan khusus lagu ini");
-                } else {
-                    settingsLyricsTrackDetailLabel.setText("Lagu aktif: \"" + active.getTitle() + "\" • Mengikuti default global (" + formatted + ")");
-                }
-            } else {
-                settingsLyricsTrackDetailLabel.setText("Tidak ada lagu diputar (mengatur offset default untuk semua lagu)");
-            }
-        }
-        if (settingsLyricsTrackBadge != null) {
-            settingsLyricsTrackBadge.setVisible(active != null);
-            settingsLyricsTrackBadge.setManaged(active != null);
-            if (active != null && settingsService != null && settingsService.hasTrackLyricsOffset(active)) {
-                settingsLyricsTrackBadge.setText("Khusus Lagu Ini");
-            } else if (active != null) {
-                settingsLyricsTrackBadge.setText("Lagu Aktif");
-            }
         }
     }
 

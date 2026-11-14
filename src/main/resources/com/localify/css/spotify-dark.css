@@ -1302,6 +1302,26 @@
     -fx-alignment: center;
 }
 
+.lyrics-offset-input {
+    -fx-background-color: #1A1A1A;
+    -fx-background-radius: 6px;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: -localify-accent;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-alignment: CENTER;
+    -fx-padding: 4 6 4 6;
+}
+
+.lyrics-offset-input:focused {
+    -fx-background-color: #242424;
+    -fx-border-color: -localify-accent;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #FFFFFF;
+}
+
 .lyrics-offset-btn {
     -fx-background-color: #242424;
     -fx-text-fill: #EDEDED;
@@ -2067,7 +2087,27 @@
     -fx-text-fill: #656D76;
 }
 
-.root.theme-light .lyrics-offset-btn {
+.root.theme-light .lyrics-offset-input {
+    -fx-background-color: #1A1A1A;
+    -fx-background-radius: 6px;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: -localify-accent;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-alignment: CENTER;
+    -fx-padding: 4 6 4 6;
+}
+
+.lyrics-offset-input:focused {
+    -fx-background-color: #242424;
+    -fx-border-color: -localify-accent;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #FFFFFF;
+}
+
+.lyrics-offset-btn {
     -fx-background-color: #FFFFFF;
     -fx-border-color: #D0D7DE;
     -fx-text-fill: #1F2328;

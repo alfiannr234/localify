@@ -359,7 +359,26 @@ public class UiAndServiceSmokeRunner {
                             Button clearSearch = (Button) mainScene.lookup("#clearSearchButton");
                             clearSearch.fire();
                             assertTrue(search.getText().isEmpty() && !emptyBox.isVisible(), "clearSearchButton restored song list");
-                            System.out.println("EVIDENCE [Search & Empty Filter State]: searchField + clearSearchButton verified.");
+
+                            // 4b. Playing from search results retains full library queue context
+                            search.setText("Roses");
+                            @SuppressWarnings("unchecked")
+                            ListView<SongListItem> searchedList = (ListView<SongListItem>) mainScene.lookup("#songListView");
+                            Track searchTarget = null;
+                            for (SongListItem item : searchedList.getItems()) {
+                                if (item instanceof SongListItem.SongEntry entry) {
+                                    searchTarget = entry.track();
+                                    break;
+                                }
+                            }
+                            if (searchTarget != null) {
+                                mainController.playTrackInCurrentView(searchTarget);
+                                assertTrue(audioService.getCurrentTrack().equals(searchTarget), "Target track from search is playing");
+                                assertTrue(audioService.getQueue().size() > 1, "Playback queue contains full library context when playing from search, not just search results");
+                                System.out.println("EVIDENCE [Search Playback Queue]: Playing from search retains full queue of " + audioService.getQueue().size() + " songs.");
+                            }
+                            clearSearch.fire();
+                            System.out.println("EVIDENCE [Search & Empty Filter State]: searchField + clearSearchButton + search queue context verified.");
 
                             // 5. Playlists list + selection + All songs button
                             try {

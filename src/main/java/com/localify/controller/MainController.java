@@ -1061,28 +1061,7 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
         }
 
         // Sort base tracks
-        Comparator<Track> comp = switch (currentSortMode) {
-            case A_Z -> Comparator.comparing(Track::getTitle, String.CASE_INSENSITIVE_ORDER);
-            case ARTIST -> Comparator.comparing(Track::getDisplayArtist, (a, b) -> {
-                boolean aUnk = "Unknown artist".equalsIgnoreCase(a);
-                boolean bUnk = "Unknown artist".equalsIgnoreCase(b);
-                if (aUnk != bUnk) return aUnk ? 1 : -1;
-                return a.compareToIgnoreCase(b);
-            });
-            case ALBUM -> Comparator.comparing(Track::getDisplayAlbum, (a, b) -> {
-                boolean aUnk = "Unknown album".equalsIgnoreCase(a);
-                boolean bUnk = "Unknown album".equalsIgnoreCase(b);
-                if (aUnk != bUnk) return aUnk ? 1 : -1;
-                return a.compareToIgnoreCase(b);
-            });
-            case RELEASE_YEAR -> (t1, t2) -> {
-                boolean y1Known = t1.hasYear();
-                boolean y2Known = t2.hasYear();
-                if (y1Known != y2Known) return y1Known ? -1 : 1;
-                return t2.getYear().compareToIgnoreCase(t1.getYear());
-            };
-            case DATE_ADDED -> Comparator.comparingLong(Track::getDateAdded).reversed();
-        };
+        Comparator<Track> comp = getSortComparator(currentSortMode);
 
         List<Track> sorted = new ArrayList<>(base);
         sorted.sort(comp);
@@ -3323,10 +3302,66 @@ public class MainController implements ContextMenuBuilder.TrackActionHandler {
         showStatusToast(message);
     }
 
+    private boolean isSearchActive() {
+        return searchField != null
+                && searchField.getText() != null
+                && !searchField.getText().strip().isEmpty();
+    }
+
+    private Comparator<Track> getSortComparator(SortMode mode) {
+        return switch (mode) {
+            case A_Z -> Comparator.comparing(Track::getTitle, String.CASE_INSENSITIVE_ORDER);
+            case ARTIST -> Comparator.comparing(Track::getDisplayArtist, (a, b) -> {
+                boolean aUnk = "Unknown artist".equalsIgnoreCase(a);
+                boolean bUnk = "Unknown artist".equalsIgnoreCase(b);
+                if (aUnk != bUnk) return aUnk ? 1 : -1;
+                return a.compareToIgnoreCase(b);
+            });
+            case ALBUM -> Comparator.comparing(Track::getDisplayAlbum, (a, b) -> {
+                boolean aUnk = "Unknown album".equalsIgnoreCase(a);
+                boolean bUnk = "Unknown album".equalsIgnoreCase(b);
+                if (aUnk != bUnk) return aUnk ? 1 : -1;
+                return a.compareToIgnoreCase(b);
+            });
+            case RELEASE_YEAR -> (t1, t2) -> {
+                boolean y1Known = t1.hasYear();
+                boolean y2Known = t2.hasYear();
+                if (y1Known != y2Known) return y1Known ? -1 : 1;
+                return t2.getYear().compareToIgnoreCase(t1.getYear());
+            };
+            case DATE_ADDED -> Comparator.comparingLong(Track::getDateAdded).reversed();
+        };
+    }
+
+    private List<Track> getCurrentViewContextTracks() {
+        List<Track> base = new ArrayList<>(activeBaseTracks);
+        if (!"All genres".equalsIgnoreCase(currentGenreFilter)) {
+            base = base.stream()
+                    .filter(t -> t.getDisplayGenre().equalsIgnoreCase(currentGenreFilter))
+                    .toList();
+        }
+        List<Track> sorted = new ArrayList<>(base);
+        sorted.sort(getSortComparator(currentSortMode));
+        return sorted;
+    }
+
     public void playTrackInCurrentView(Track track) {
-        List<Track> context = displayedTracks.isEmpty()
-                ? List.of(track)
-                : new ArrayList<>(displayedTracks);
+        if (track == null) return;
+        List<Track> context;
+        if (isSearchActive()) {
+            List<Track> fullTracks = getCurrentViewContextTracks();
+            if (fullTracks.contains(track)) {
+                context = fullTracks;
+            } else {
+                context = displayedTracks.isEmpty()
+                        ? List.of(track)
+                        : new ArrayList<>(displayedTracks);
+            }
+        } else {
+            context = displayedTracks.isEmpty()
+                    ? List.of(track)
+                    : new ArrayList<>(displayedTracks);
+        }
         audioService.playFromContext(context, track);
     }
 

@@ -42,11 +42,15 @@ export function sameLanguage(a: string, b: string): boolean {
   );
 }
 
-export function uniqueLines(lines: string[]): string[] {
-  return [...new Set(lines.map((l) => l.trim()).filter(Boolean))];
+export function normalizeLineKey(line: string): string {
+  return line.replace(/[\r\n]+/g, ' ').trim();
 }
 
-export function batchTexts(texts: string[], maxChars = 4000): string[][] {
+export function uniqueLines(lines: string[]): string[] {
+  return [...new Set(lines.map(normalizeLineKey).filter(Boolean))];
+}
+
+export function batchTexts(texts: string[], maxChars = 1400): string[][] {
   const out: string[][] = [];
   let len = 0;
   for (const t of texts) {
@@ -83,9 +87,10 @@ export function alignTranslatedLines(sent: string[], reply: string): string[] | 
 
 export function mapLinesBack(lines: string[], dict: Record<string, string>): Array<string | null> {
   return lines.map((l) => {
-    const t = dict[l.trim()];
+    const clean = normalizeLineKey(l);
+    const t = dict[clean];
     if (!t) return null;
-    return t.trim().toLowerCase() === l.trim().toLowerCase() ? null : t;
+    return t.trim().toLowerCase() === clean.toLowerCase() ? null : t.trim();
   });
 }
 

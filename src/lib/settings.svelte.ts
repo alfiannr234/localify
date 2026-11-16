@@ -33,6 +33,7 @@ class SettingsStore {
   outputDevice = $state('');
   volume = $state(0.85);
   speed = $state(1.0);
+  uiZoom = $state(1.0);
   loaded = $state(false);
 
   async load(): Promise<void> {
@@ -99,6 +100,10 @@ class SettingsStore {
         const sp = Number(kv.speed);
         if (Number.isFinite(sp)) this.speed = Math.max(0.5, Math.min(2, sp));
       }
+      if (kv.ui_zoom) {
+        const z = Number(kv.ui_zoom);
+        if (Number.isFinite(z)) this.uiZoom = Math.max(0.65, Math.min(1.5, z));
+      }
     } finally {
       this.loaded = true;
     }
@@ -106,6 +111,13 @@ class SettingsStore {
 
   save(key: string, value: string): void {
     void api.setKv(key, value);
+  }
+
+  setZoom(next: number): void {
+    const clamped = Math.max(0.65, Math.min(1.5, Math.round(next * 20) / 20));
+    this.uiZoom = clamped;
+    this.save('ui_zoom', clamped.toFixed(2));
+    void api.setWindowZoom(clamped).catch(() => {});
   }
 }
 

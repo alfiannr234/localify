@@ -4,7 +4,7 @@
   import { lyricsStore } from '../lib/lyrics.svelte';
   import { player } from '../lib/player.svelte';
   import { settings } from '../lib/settings.svelte';
-  import { languageName } from '../lib/translate';
+  import { TRANSLATE_LANGUAGES, languageName } from '../lib/translate';
   import { translateStore, triggerTranslateSync } from '../lib/translate.svelte';
   import { formatTime } from '../lib/format';
   import Icon from './Icon.svelte';
@@ -12,9 +12,10 @@
 
   interface Props {
     expanded?: boolean;
+    onBackdrop?: boolean;
   }
 
-  let { expanded = false }: Props = $props();
+  let { expanded = false, onBackdrop = false }: Props = $props();
 
   let track = $derived(player.currentTrack);
   let active = $derived(lyricsStore.activeAt(player.smoothPosition));
@@ -44,18 +45,29 @@
 
   $effect(() => {
     const idx = active.lineIndex;
+    void translateStore.lines;
+    void learnStore.pieces;
+    void withSub;
     if (idx < 0 || manualScrolling || learnStore.card.open || !scrollerEl) return;
     const lineEl = scrollerEl.querySelector<HTMLElement>(`[data-line="${idx}"]`);
     if (lineEl) {
+      const sRect = scrollerEl.getBoundingClientRect();
+      const lRect = lineEl.getBoundingClientRect();
+      const topInScroller = lRect.top - sRect.top + scrollerEl.scrollTop;
       const ratio = expanded ? 0.36 : 0.34;
-      const targetTop =
-        lineEl.offsetTop - scrollerEl.clientHeight * ratio + lineEl.offsetHeight / 2;
+      const targetTop = topInScroller - scrollerEl.clientHeight * ratio + lRect.height / 2;
       scrollerEl.scrollTo({
         top: Math.max(0, targetTop),
         behavior: 'smooth',
       });
     }
   });
+
+  function setTargetLanguage(code: string): void {
+    settings.lyricsLanguage = code;
+    settings.save('lyrics_language', code);
+    triggerTranslateSync();
+  }
 
   function onUserWheel(): void {
     manualScrolling = true;
@@ -87,10 +99,30 @@
   }
 </script>
 
-<div class="lyrics-pane" class:expanded class:learning class:with-sub={withSub} class:manual={manualScrolling}>
+<div
+  class="lyrics-pane"
+  class:expanded
+  class:backdrop={expanded || onBackdrop}
+  class:learning
+  class:with-sub={withSub}
+  class:manual={manualScrolling}
+>
   {#if track}
     <div class="tools-bar">
       <div class="floating-tools">
+        {#if (settings.translateLyrics || settings.learnLyrics) && lyricsStore.lines.length > 0}
+          <select
+            class="lang-pick"
+            aria-label="Translation target language"
+            value={translateStore.targetLanguage()}
+            onchange={(e) => setTargetLanguage((e.currentTarget as HTMLSelectElement).value)}
+          >
+            {#each TRANSLATE_LANGUAGES as [code, label] (code)}
+              <option value={code}>{label}</option>
+            {/each}
+          </select>
+        {/if}
+
         {#if lyricsStore.lines.length > 0}
           <button
             type="button"
@@ -131,6 +163,18 @@
         </button>
       </div>
     </div>
+
+    {#if (settings.translateLyrics || settings.learnLyrics) && (translateStore.error || translateStore.same)}
+      <div class="tr-note" class:err={Boolean(translateStore.error)}>
+        {#if translateStore.error}
+          <span>{translateStore.error}</span>
+        {:else if translateStore.same}
+          <span>
+            Lyrics match {languageName(translateStore.targetLanguage())}. Choose Indonesian or another language above.
+          </span>
+        {/if}
+      </div>
+    {/if}
   {/if}
 
   {#if searchOpen && track}
@@ -245,7 +289,7 @@
                 <span class="ro">{learnStore.romajiLines[idx]}</span>
               {/if}
               {#if translateStore.lines?.[idx]}
-                <span class="tr">{translateStore.lines[idx]}</span>
+                <span class="tr">({translateStore.lines[idx]})</span>
               {/if}
             </div>
           {:else}
@@ -277,7 +321,7 @@
               </span>
 
               {#if translateStore.lines?.[idx]}
-                <span class="tr">{translateStore.lines[idx]}</span>
+                <span class="tr">({translateStore.lines[idx]})</span>
               {:else if settings.romanizeLyrics && lyricsStore.romanizedLines[idx] && !learnStore.japanese}
                 <span class="ro">{lyricsStore.romanizedLines[idx]}</span>
               {/if}
@@ -337,7 +381,7 @@
     justify-content: center;
     transition: background 140ms ease, opacity 140ms ease, color 140ms ease;
   }
-  .expanded .icon-tool {
+  .backdrop .icon-tool {
     opacity: 1;
     color: rgba(255, 255, 255, 0.76);
   }
@@ -345,7 +389,7 @@
     opacity: 1;
     background: rgba(130, 140, 160, 0.18);
   }
-  .expanded .icon-tool:hover {
+  .backdrop .icon-tool:hover {
     background: rgba(255, 255, 255, 0.14);
     color: #fff;
   }
@@ -354,9 +398,51 @@
     color: var(--accent);
     background: var(--accent-soft);
   }
-  .expanded .icon-tool.on {
+  .backdrop .icon-tool.on {
     color: #fff;
     background: rgba(255, 255, 255, 0.2);
+  }
+  .lang-pick {
+    height: 28px;
+    max-width: 126px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .backdrop .lang-pick {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+  .lang-pick option {
+    background: var(--surface);
+    color: var(--text);
+  }
+  .backdrop .lang-pick option {
+    background: #1a1e29;
+    color: #fff;
+  }
+  .tr-note {
+    flex: none;
+    margin: 0 12px 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    text-align: center;
+    background: rgba(130, 140, 160, 0.14);
+    color: var(--text-2);
+  }
+  .backdrop .tr-note {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.82);
+  }
+  .tr-note.err {
+    color: var(--danger);
   }
   .icon-tool.busy {
     animation: pulseOpacity 1.2s ease-in-out infinite;
@@ -436,6 +522,7 @@
     opacity: 0.65;
   }
   .lines-scroll {
+    position: relative;
     height: 100%;
     overflow-y: auto;
     scrollbar-width: none;
@@ -481,9 +568,11 @@
     transform-origin: left center;
     transition: color 300ms ease, filter 300ms ease, transform 380ms cubic-bezier(0.25, 1.2, 0.4, 1);
   }
+  .backdrop .line {
+    color: rgba(255, 255, 255, 0.5);
+  }
   .expanded .line {
     padding: calc(var(--lrc-size, 26px) * 0.27) 12px;
-    color: rgba(255, 255, 255, 0.5);
   }
   .manual .line {
     filter: none;
@@ -500,7 +589,7 @@
     filter: none;
     transform: none;
   }
-  .expanded .line.on {
+  .backdrop .line.on {
     color: #fff;
   }
   .line-txt {
@@ -520,7 +609,7 @@
     color: transparent;
     white-space: pre-wrap;
   }
-  .expanded .word-sweep {
+  .backdrop .word-sweep {
     background: linear-gradient(90deg, #fff var(--p), rgba(255, 255, 255, 0.36) var(--p));
     -webkit-background-clip: text;
     background-clip: text;
@@ -529,10 +618,10 @@
   .tr {
     display: block;
     margin-top: 4px;
-    font-size: 0.56em;
+    font-size: clamp(12px, calc(var(--lrc-size, 22px) * 0.54), 18px);
     font-weight: 600;
-    line-height: 1.32;
-    opacity: 0.72;
+    line-height: 1.35;
+    opacity: 0.78;
   }
   .ro {
     display: block;
@@ -583,7 +672,7 @@
     background: currentColor;
     color: var(--text);
   }
-  .expanded .dots i {
+  .backdrop .dots i {
     color: #fff;
   }
   .empty-msg {

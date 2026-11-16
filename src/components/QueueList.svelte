@@ -4,6 +4,12 @@
   import Artwork from './Artwork.svelte';
   import Icon from './Icon.svelte';
 
+  interface Props {
+    onBackdrop?: boolean;
+  }
+
+  let { onBackdrop = false }: Props = $props();
+
   let dragFrom = $state<number | null>(null);
   let dragOver = $state<number | null>(null);
 
@@ -16,7 +22,7 @@
   }
 </script>
 
-<div class="queue-shell scroll-thin">
+<div class="queue-shell scroll-thin" class:backdrop={onBackdrop}>
   {#if current}
     <div class="section-label">NOW PLAYING</div>
     <div class="q-item current">
@@ -195,5 +201,30 @@
     font-size: 12.5px;
     padding: 20px 8px;
     text-align: center;
+  }
+  .backdrop .section-label,
+  .backdrop .section-head,
+  .backdrop .q-dur,
+  .backdrop .empty {
+    color: rgba(255, 255, 255, 0.58);
+  }
+  .backdrop .q-title {
+    color: #fff;
+  }
+  .backdrop .q-artist {
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .backdrop .clear-btn,
+  .backdrop .q-item.current .q-title {
+    color: #fff;
+  }
+  .backdrop .q-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .backdrop .q-item.current {
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .backdrop .rm-btn {
+    color: rgba(255, 255, 255, 0.75);
   }
 </style>

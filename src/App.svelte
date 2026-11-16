@@ -45,6 +45,9 @@
       if (settings.outputDevice) {
         await api.audioSetDevice(settings.outputDevice).catch(() => {});
       }
+      if (settings.uiZoom !== 1.0) {
+        await api.setWindowZoom(settings.uiZoom).catch(() => {});
+      }
 
       const u1 = await listen<{ current: number; total: number }>('scan-progress', (ev) => {
         library.scanCurrent = ev.payload.current;
@@ -68,13 +71,39 @@
       ready = true;
     })();
 
+    const onWheel = (e: WheelEvent): void => {
+      if (!(e.ctrlKey || e.metaKey) || Math.abs(e.deltaY) < 1) return;
+      e.preventDefault();
+      settings.setZoom(settings.uiZoom + (e.deltaY < 0 ? 0.05 : -0.05));
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+
     return () => {
+      window.removeEventListener('wheel', onWheel);
       for (const fn of cleanupFns) fn();
       player.destroy();
     };
   });
 
   function onGlobalKeyDown(e: KeyboardEvent): void {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === '-' || e.key === '_' || e.code === 'Minus' || e.code === 'NumpadSubtract') {
+        e.preventDefault();
+        settings.setZoom(settings.uiZoom - 0.05);
+        return;
+      }
+      if (e.key === '+' || e.key === '=' || e.code === 'Equal' || e.code === 'NumpadAdd') {
+        e.preventDefault();
+        settings.setZoom(settings.uiZoom + 0.05);
+        return;
+      }
+      if (e.key === '0' || e.code === 'Digit0' || e.code === 'Numpad0') {
+        e.preventDefault();
+        settings.setZoom(1.0);
+        return;
+      }
+    }
+
     const tag = (e.target as HTMLElement | null)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 

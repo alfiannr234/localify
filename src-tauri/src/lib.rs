@@ -499,6 +499,19 @@ fn set_window_theme(theme: String, app: AppHandle) {
 }
 
 #[tauri::command]
+fn set_window_zoom(zoom: f64, app: AppHandle) -> Result<(), String> {
+    let clamped = if zoom.is_finite() {
+        zoom.clamp(0.65, 1.5)
+    } else {
+        1.0
+    };
+    if let Some(win) = app.get_webview_window("main") {
+        win.set_zoom(clamped).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
 async fn fetch_lyrics_source(
     source: String,
     track_path: String,
@@ -592,6 +605,13 @@ pub fn run() {
                     };
                     let _ = win.set_theme(t);
                 }
+                if let Ok(Some(saved_zoom)) = db.get_kv("ui_zoom") {
+                    if let Ok(z) = saved_zoom.parse::<f64>() {
+                        if z.is_finite() {
+                            let _ = win.set_zoom(z.clamp(0.65, 1.5));
+                        }
+                    }
+                }
             }
 
             let smtc = SmtcController::init(app.handle(), hwnd_raw);
@@ -676,6 +696,7 @@ pub fn run() {
             smtc_clear,
             reveal_in_explorer,
             set_window_theme,
+            set_window_zoom,
             get_launch_files,
             downloads::tools_status,
             downloads::tool_install,

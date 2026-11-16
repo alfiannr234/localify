@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatAudioSpecs, formatTime } from '../lib/format';
+  import { formatTime } from '../lib/format';
   import { library } from '../lib/library.svelte';
   import { nav } from '../lib/nav.svelte';
   import { player } from '../lib/player.svelte';
@@ -12,7 +12,6 @@
   let scrubVal = $state(0);
   let displayPos = $derived(scrubbing ? scrubVal : player.smoothPosition);
   let totalDur = $derived(player.duration || track?.duration || 0);
-  let specs = $derived(formatAudioSpecs(track));
 
   let showSleepMenu = $state(false);
   let showSpeedMenu = $state(false);
@@ -130,9 +129,6 @@
         }}
       />
       <span class="time right tabular">{formatTime(totalDur)}</span>
-      {#if specs}
-        <span class="specs-label">{specs}</span>
-      {/if}
     </div>
   </div>
 
@@ -378,12 +374,6 @@
   }
   .time.right {
     text-align: right;
-  }
-  .specs-label {
-    font-size: 10.5px;
-    color: var(--text-3);
-    white-space: nowrap;
-    margin-left: 2px;
   }
   .right {
     display: flex;

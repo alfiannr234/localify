@@ -115,6 +115,7 @@ export const api = {
 
   revealInExplorer: (path: string) => invoke<void>('reveal_in_explorer', { path }),
   setWindowTheme: (theme: string) => invoke<void>('set_window_theme', { theme }),
+  setWindowZoom: (zoom: number) => invoke<void>('set_window_zoom', { zoom }),
   getLaunchFiles: () => invoke<string[]>('get_launch_files'),
 
   toolsStatus: () => invoke<{ ytdlp: string | null; ffmpeg: string | null }>('tools_status'),

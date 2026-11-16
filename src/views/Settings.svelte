@@ -151,7 +151,7 @@
     </section>
   {/if}
 
-  {#if matches('appearance theme accent color artwork')}
+  {#if matches('appearance theme accent color artwork zoom scale')}
     <section class="card-sec">
       <h2>Personalization</h2>
       <div class="row">
@@ -215,6 +215,29 @@
             refreshTheme();
           }}
         />
+      </div>
+
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Interface scale</div>
+          <div class="row-desc">Resize the app window content (Ctrl + - / Ctrl + + / Ctrl + 0)</div>
+        </div>
+        <div class="offset-controls">
+          <button type="button" class="btn tabular" onclick={() => settings.setZoom(settings.uiZoom - 0.05)}>
+            -
+          </button>
+          <button
+            type="button"
+            class="btn tabular"
+            title="Reset zoom to 100%"
+            onclick={() => settings.setZoom(1.0)}
+          >
+            {Math.round(settings.uiZoom * 100)}%
+          </button>
+          <button type="button" class="btn tabular" onclick={() => settings.setZoom(settings.uiZoom + 0.05)}>
+            +
+          </button>
+        </div>
       </div>
     </section>
   {/if}

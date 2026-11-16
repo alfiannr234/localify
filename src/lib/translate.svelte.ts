@@ -41,7 +41,7 @@ class TranslateStore {
     const tl = this.targetLanguage();
     this.busy = true;
     try {
-      const kvKey = `tr:${tl}:${fnvHashHex(uniq.join('\n'))}`;
+      const kvKey = `tr2:${tl}:${fnvHashHex(uniq.join('\n'))}`;
       const allKv = await api.getAllKv().catch(() => ({} as Record<string, string>));
       let cached: { source: string; dict: Record<string, string> } | null = null;
       if (allKv[kvKey]) {
@@ -63,22 +63,31 @@ class TranslateStore {
           if (!aligned) {
             aligned = [];
             for (const single of chunk) {
-              const singleRaw = await api.googleTranslate(single, 'auto', tl, false);
-              aligned.push(parseGtx(JSON.parse(singleRaw)).text.trim());
+              try {
+                const singleRaw = await api.googleTranslate(single, 'auto', tl, false);
+                aligned.push(parseGtx(JSON.parse(singleRaw)).text.trim());
+              } catch {
+                aligned.push('');
+              }
             }
           }
           chunk.forEach((orig, idx) => {
-            dict[orig] = aligned![idx] ?? '';
+            const val = aligned![idx] ?? '';
+            if (val) dict[orig] = val;
           });
         }
         cached = { source: detected, dict };
-        void api.setKv(kvKey, JSON.stringify(cached));
+        if (Object.keys(dict).length > 0) {
+          void api.setKv(kvKey, JSON.stringify(cached));
+        }
       }
 
       if (id !== this.reqId) return;
       this.source = cached.source;
-      this.same = sameLanguage(cached.source, tl);
-      this.lines = this.same ? null : mapLinesBack(textLines, cached.dict);
+      const mapped = mapLinesBack(textLines, cached.dict);
+      const hasDiff = mapped.some((v) => v !== null);
+      this.same = sameLanguage(cached.source, tl) && !hasDiff;
+      this.lines = this.same ? null : mapped;
     } catch (e) {
       if (id === this.reqId) {
         this.error = e instanceof Error ? e.message : String(e);

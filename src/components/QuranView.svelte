@@ -51,7 +51,10 @@
     if (idx < 0 || manualScrolling || !scrollerEl) return;
     const el = scrollerEl.querySelector<HTMLElement>(`[data-q-unit="${idx}"]`);
     if (el) {
-      const targetTop = Math.max(0, el.offsetTop - scrollerEl.clientHeight * 0.28);
+      const sRect = scrollerEl.getBoundingClientRect();
+      const uRect = el.getBoundingClientRect();
+      const topInScroller = uRect.top - sRect.top + scrollerEl.scrollTop;
+      const targetTop = Math.max(0, topInScroller - scrollerEl.clientHeight * 0.28);
       scrollerEl.scrollTo({ top: targetTop, behavior: 'smooth' });
     }
   });
@@ -406,6 +409,7 @@
     opacity: 1;
   }
   .q-scroll {
+    position: relative;
     flex: 1;
     overflow-y: auto;
     scrollbar-width: none;

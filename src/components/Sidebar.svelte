@@ -71,9 +71,6 @@
       >
         <Icon name="songs" size={18} />
         <span>Songs</span>
-        {#if library.tracks.length > 0}
-          <span class="count tabular">{library.tracks.length}</span>
-        {/if}
       </button>
       <button
         type="button"

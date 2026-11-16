@@ -58,10 +58,7 @@
 
 <div class="songs-page">
   <div class="page-head">
-    <div>
-      <h1>Songs</h1>
-      <p class="sub tabular">{sorted.length} tracks</p>
-    </div>
+    <h1>Songs</h1>
 
     <div class="controls">
       {#if selectedTracks.length > 1}
@@ -169,11 +166,6 @@
     margin: 0;
     font-size: 22px;
     font-weight: 700;
-  }
-  .sub {
-    margin: 2px 0 0;
-    font-size: 12.5px;
-    color: var(--text-2);
   }
   .controls {
     display: flex;

@@ -13,7 +13,7 @@ import { buildFurigana, kanaToRomaji } from '../lib/kana';
 import { parseLookup } from '../lib/lookup';
 import { resolveOrderedLyrics } from '../lib/lyricsources';
 import { needsRomanization, romanizeText } from '../lib/romanize';
-import { parseGtx } from '../lib/translate';
+import { mapLinesBack, normalizeLineKey, parseGtx, uniqueLines } from '../lib/translate';
 import { reviewVocab } from '../lib/vocab';
 import type { Track } from '../lib/types';
 
@@ -188,6 +188,12 @@ describe('Lyrics sources order, Qur\'an detection, Learn mode & Translation', ()
 
     const gtx = parseGtx([[['Halo', 'Hello']], null, 'en']);
     expect(gtx.text).toBe('Halo');
+    expect(normalizeLineKey('Line one\r\nLine two')).toBe('Line one Line two');
+    expect(uniqueLines(['  Hello\nworld  ', 'Hello world'])).toEqual(['Hello world']);
+    expect(mapLinesBack(['Hello\nworld', 'Same'], { 'Hello world': 'Halo dunia', Same: 'same' })).toEqual([
+      'Halo dunia',
+      null,
+    ]);
     const look = parseLookup([[['cinta', 'love'], [null, null, null, 'ai']], [['noun', ['love', 'affection']]], 'ja']);
     expect(look.romaji).toBe('ai');
     expect(look.senses[0].terms).toContain('love');

@@ -24,6 +24,7 @@
   let searchOpen = $state(false);
 
   let learning = $derived(settings.learnLyrics && Boolean(learnStore.pieces));
+  let withSub = $derived(learning || (settings.translateLyrics && Boolean(translateStore.lines?.length)));
   let gapStart = $derived.by(() => {
     const idx = active.lineIndex;
     const lines = lyricsStore.lines;
@@ -46,8 +47,9 @@
     if (idx < 0 || manualScrolling || learnStore.card.open || !scrollerEl) return;
     const lineEl = scrollerEl.querySelector<HTMLElement>(`[data-line="${idx}"]`);
     if (lineEl) {
+      const ratio = expanded ? 0.36 : 0.34;
       const targetTop =
-        lineEl.offsetTop - scrollerEl.clientHeight * 0.34 + lineEl.offsetHeight / 2;
+        lineEl.offsetTop - scrollerEl.clientHeight * ratio + lineEl.offsetHeight / 2;
       scrollerEl.scrollTo({
         top: Math.max(0, targetTop),
         behavior: 'smooth',
@@ -85,47 +87,49 @@
   }
 </script>
 
-<div class="lyrics-pane" class:expanded class:learning class:manual={manualScrolling}>
+<div class="lyrics-pane" class:expanded class:learning class:with-sub={withSub} class:manual={manualScrolling}>
   {#if track}
-    <div class="floating-tools">
-      {#if lyricsStore.lines.length > 0}
-        <button
-          type="button"
-          class="icon-tool"
-          class:on={settings.learnLyrics}
-          aria-pressed={settings.learnLyrics}
-          aria-label="Learn mode"
-          title="Learn mode: tap any word for meaning, furigana, and vocabulary"
-          onclick={toggleLearn}
-        >
-          <Icon name="graduation-cap" size={18} />
-        </button>
-        {#if !settings.learnLyrics}
+    <div class="tools-bar">
+      <div class="floating-tools">
+        {#if lyricsStore.lines.length > 0}
           <button
             type="button"
             class="icon-tool"
-            class:on={settings.translateLyrics}
-            class:busy={translateStore.busy}
-            aria-pressed={settings.translateLyrics}
-            aria-label="Translate lyrics"
-            title="Translate lyrics to {languageName(translateStore.targetLanguage())}"
-            onclick={toggleTranslate}
+            class:on={settings.learnLyrics}
+            aria-pressed={settings.learnLyrics}
+            aria-label="Learn mode"
+            title="Learn mode: tap any word for meaning, furigana, and vocabulary"
+            onclick={toggleLearn}
           >
-            <Icon name="translate" size={18} />
+            <Icon name="graduation-cap" size={18} />
           </button>
+          {#if !settings.learnLyrics}
+            <button
+              type="button"
+              class="icon-tool"
+              class:on={settings.translateLyrics}
+              class:busy={translateStore.busy}
+              aria-pressed={settings.translateLyrics}
+              aria-label="Translate lyrics"
+              title="Translate lyrics to {languageName(translateStore.targetLanguage())}"
+              onclick={toggleTranslate}
+            >
+              <Icon name="translate" size={18} />
+            </button>
+          {/if}
         {/if}
-      {/if}
 
-      <button
-        type="button"
-        class="icon-tool"
-        class:on={searchOpen}
-        aria-label="Choose online lyrics version"
-        title="Search online lyrics versions"
-        onclick={toggleVersions}
-      >
-        <Icon name="search" size={16} />
-      </button>
+        <button
+          type="button"
+          class="icon-tool"
+          class:on={searchOpen}
+          aria-label="Choose online lyrics version"
+          title="Search online lyrics versions"
+          onclick={toggleVersions}
+        >
+          <Icon name="search" size={16} />
+        </button>
+      </div>
     </div>
   {/if}
 
@@ -169,127 +173,129 @@
     </div>
   {/if}
 
-  <div
-    bind:this={scrollerEl}
-    class="lines-scroll"
-    role="region"
-    aria-label="Synchronized lyrics"
-    style="--lrc-size: {expanded ? 'clamp(24px, 2.3vw, 38px)' : `${settings.lyricsFontSize}px`};"
-    onwheel={onUserWheel}
-    ontouchstart={onUserWheel}
-  >
-    {#if !track}
-      <div class="empty-msg">Play a song to follow along with lyrics.</div>
-    {:else if lyricsStore.loading}
-      <div class="empty-msg">Looking for lyrics...</div>
-    {:else if lyricsStore.lines.length === 0}
-      <div class="empty-msg">
-        <p>No lyrics available for this song.</p>
-        <button type="button" class="search-pill" onclick={toggleVersions}>Search Online</button>
-      </div>
-    {:else}
-      <div class="spacer"></div>
-
-      {#if gapStart && active.lineIndex < 0}
-        {@const pct = Math.min(1, Math.max(0, (player.smoothPosition - gapStart.start) / Math.max(0.1, gapStart.end - gapStart.start)))}
-        <div class="dots" aria-label="Instrumental">
-          {#each [0, 1, 2] as d (d)}
-            <i style:opacity={0.3 + 0.7 * Math.min(1, Math.max(0, pct * 3 - d))}></i>
-          {/each}
+  <div class="lyrics-stage">
+    <div
+      bind:this={scrollerEl}
+      class="lines-scroll"
+      role="region"
+      aria-label="Synchronized lyrics"
+      style="--lrc-size: {expanded ? 'clamp(20px, min(2.05vw, 3.3vh), 29px)' : `${settings.lyricsFontSize}px`};"
+      onwheel={onUserWheel}
+      ontouchstart={onUserWheel}
+    >
+      {#if !track}
+        <div class="empty-msg">Play a song to follow along with lyrics.</div>
+      {:else if lyricsStore.loading}
+        <div class="empty-msg">Looking for lyrics...</div>
+      {:else if lyricsStore.lines.length === 0}
+        <div class="empty-msg">
+          <p>No lyrics available for this song.</p>
+          <button type="button" class="search-pill" onclick={toggleVersions}>Search Online</button>
         </div>
-      {/if}
+      {:else}
+        <div class="spacer top"></div>
 
-      {#each lyricsStore.lines as line, idx (idx)}
-        {@const isCurrent = lyricsStore.synced && idx === active.lineIndex}
-        {@const dist = Math.min(4, Math.abs(idx - Math.max(0, active.lineIndex)))}
-        {#if learning && learnStore.pieces?.[idx]}
-          <div
-            data-line={idx}
-            class="line"
-            class:on={isCurrent}
-            class:past={lyricsStore.synced && idx < active.lineIndex}
-            style:--d={0}
-          >
-            <span class="learn-words" lang={learnStore.japanese ? 'ja' : undefined}>
-              {#each learnStore.pieces[idx] as p, j (j)}
-                {#if p.tap}
-                  <button
-                    type="button"
-                    class="wd"
-                    class:sel={learnStore.card.open && learnStore.card.line === idx && learnStore.card.piece === j}
-                    onclick={() => learnStore.openWord(idx, j)}
-                  >
-                    {#if p.reading}
-                      {#each buildFurigana(p.text, p.reading) as seg, k (k)}
-                        {#if seg.rt}
-                          <ruby>{seg.text}<rt>{seg.rt}</rt></ruby>
-                        {:else}
-                          {seg.text}
-                        {/if}
-                      {/each}
-                    {:else}
-                      {p.text}
-                    {/if}
-                  </button>
-                {:else}
-                  {p.text}
-                {/if}
-              {/each}
-            </span>
-            {#if learnStore.romajiLines?.[idx]}
-              <span class="ro">{learnStore.romajiLines[idx]}</span>
-            {/if}
-            {#if translateStore.lines?.[idx]}
-              <span class="tr">{translateStore.lines[idx]}</span>
-            {/if}
+        {#if gapStart && active.lineIndex < 0}
+          {@const pct = Math.min(1, Math.max(0, (player.smoothPosition - gapStart.start) / Math.max(0.1, gapStart.end - gapStart.start)))}
+          <div class="dots" aria-label="Instrumental">
+            {#each [0, 1, 2] as d (d)}
+              <i style:opacity={0.3 + 0.7 * Math.min(1, Math.max(0, pct * 3 - d))}></i>
+            {/each}
           </div>
-        {:else}
-          <button
-            type="button"
-            data-line={idx}
-            class="line"
-            class:on={isCurrent}
-            class:past={lyricsStore.synced && idx < active.lineIndex}
-            class:bg-vocal={line.bg}
-            style:--d={manualScrolling || !lyricsStore.synced ? 0 : dist}
-            disabled={!lyricsStore.synced}
-            onclick={() => lyricsStore.synced && player.seek(line.time - lyricsStore.trackOffset)}
-          >
-            <span class="line-txt">
-              {#if isCurrent && line.words.length > 0}
-                {#each line.words as word, wIdx (wIdx)}
-                  {@const wp =
-                    wIdx < active.wordIndex
-                      ? 100
-                      : wIdx === active.wordIndex
-                        ? Math.round(active.wordProgress * 100)
-                        : 0}
-                  <span class="word-sweep" style:--p="{wp}%">{word.text}</span>
-                {/each}
-              {:else}
-                {line.text}
-              {/if}
-            </span>
-
-            {#if translateStore.lines?.[idx]}
-              <span class="tr">{translateStore.lines[idx]}</span>
-            {:else if settings.romanizeLyrics && lyricsStore.romanizedLines[idx] && !learnStore.japanese}
-              <span class="ro">{lyricsStore.romanizedLines[idx]}</span>
-            {/if}
-          </button>
-
-          {#if isCurrent && gapStart}
-            {@const pct = Math.min(1, Math.max(0, (player.smoothPosition - gapStart.start) / Math.max(0.1, gapStart.end - gapStart.start)))}
-            <div class="dots" aria-label="Instrumental">
-              {#each [0, 1, 2] as d (d)}
-                <i style:opacity={0.3 + 0.7 * Math.min(1, Math.max(0, pct * 3 - d))}></i>
-              {/each}
-            </div>
-          {/if}
         {/if}
-      {/each}
-      <div class="spacer"></div>
-    {/if}
+
+        {#each lyricsStore.lines as line, idx (idx)}
+          {@const isCurrent = lyricsStore.synced && idx === active.lineIndex}
+          {@const dist = Math.min(4, Math.abs(idx - Math.max(0, active.lineIndex)))}
+          {#if learning && learnStore.pieces?.[idx]}
+            <div
+              data-line={idx}
+              class="line"
+              class:on={isCurrent}
+              class:past={lyricsStore.synced && idx < active.lineIndex}
+              style:--d={0}
+            >
+              <span class="learn-words" lang={learnStore.japanese ? 'ja' : undefined}>
+                {#each learnStore.pieces[idx] as p, j (j)}
+                  {#if p.tap}
+                    <button
+                      type="button"
+                      class="wd"
+                      class:sel={learnStore.card.open && learnStore.card.line === idx && learnStore.card.piece === j}
+                      onclick={() => learnStore.openWord(idx, j)}
+                    >
+                      {#if p.reading}
+                        {#each buildFurigana(p.text, p.reading) as seg, k (k)}
+                          {#if seg.rt}
+                            <ruby>{seg.text}<rt>{seg.rt}</rt></ruby>
+                          {:else}
+                            {seg.text}
+                          {/if}
+                        {/each}
+                      {:else}
+                        {p.text}
+                      {/if}
+                    </button>
+                  {:else}
+                    {p.text}
+                  {/if}
+                {/each}
+              </span>
+              {#if learnStore.romajiLines?.[idx]}
+                <span class="ro">{learnStore.romajiLines[idx]}</span>
+              {/if}
+              {#if translateStore.lines?.[idx]}
+                <span class="tr">{translateStore.lines[idx]}</span>
+              {/if}
+            </div>
+          {:else}
+            <button
+              type="button"
+              data-line={idx}
+              class="line"
+              class:on={isCurrent}
+              class:past={lyricsStore.synced && idx < active.lineIndex}
+              class:bg-vocal={line.bg}
+              style:--d={manualScrolling || !lyricsStore.synced ? 0 : dist}
+              disabled={!lyricsStore.synced}
+              onclick={() => lyricsStore.synced && player.seek(line.time - lyricsStore.trackOffset)}
+            >
+              <span class="line-txt">
+                {#if isCurrent && line.words.length > 0}
+                  {#each line.words as word, wIdx (wIdx)}
+                    {@const wp =
+                      wIdx < active.wordIndex
+                        ? 100
+                        : wIdx === active.wordIndex
+                          ? Math.round(active.wordProgress * 100)
+                          : 0}
+                    <span class="word-sweep" style:--p="{wp}%">{word.text}</span>
+                  {/each}
+                {:else}
+                  {line.text}
+                {/if}
+              </span>
+
+              {#if translateStore.lines?.[idx]}
+                <span class="tr">{translateStore.lines[idx]}</span>
+              {:else if settings.romanizeLyrics && lyricsStore.romanizedLines[idx] && !learnStore.japanese}
+                <span class="ro">{lyricsStore.romanizedLines[idx]}</span>
+              {/if}
+            </button>
+
+            {#if isCurrent && gapStart}
+              {@const pct = Math.min(1, Math.max(0, (player.smoothPosition - gapStart.start) / Math.max(0.1, gapStart.end - gapStart.start)))}
+              <div class="dots" aria-label="Instrumental">
+                {#each [0, 1, 2] as d (d)}
+                  <i style:opacity={0.3 + 0.7 * Math.min(1, Math.max(0, pct * 3 - d))}></i>
+                {/each}
+              </div>
+            {/if}
+          {/if}
+        {/each}
+        <div class="spacer bottom"></div>
+      {/if}
+    </div>
   </div>
 
   <WordCard />
@@ -299,36 +305,49 @@
   .lyrics-pane {
     position: relative;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
-  .floating-tools {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+  .tools-bar {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 10px 4px;
     z-index: 10;
+  }
+  .expanded .tools-bar {
+    padding: 0 4px 10px;
+  }
+  .floating-tools {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
   }
   .icon-tool {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border: none;
     border-radius: 8px;
     background: transparent;
     color: var(--text-2);
-    opacity: 0.72;
+    opacity: 0.78;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 140ms ease, opacity 140ms ease, color 140ms ease;
   }
   .expanded .icon-tool {
-    color: rgba(255, 255, 255, 0.74);
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.76);
   }
   .icon-tool:hover {
     opacity: 1;
     background: rgba(130, 140, 160, 0.18);
+  }
+  .expanded .icon-tool:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
   }
   .icon-tool.on {
     opacity: 1;
@@ -337,7 +356,7 @@
   }
   .expanded .icon-tool.on {
     color: #fff;
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.2);
   }
   .icon-tool.busy {
     animation: pulseOpacity 1.2s ease-in-out infinite;
@@ -346,6 +365,15 @@
     50% {
       opacity: 0.35;
     }
+  }
+  .lyrics-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .expanded .lyrics-stage {
+    justify-content: center;
   }
   .cand-overlay {
     position: absolute;
@@ -412,17 +440,32 @@
     overflow-y: auto;
     scrollbar-width: none;
     padding: 0 14px;
-    mask-image: linear-gradient(transparent, #000 12%, #000 82%, transparent);
+    mask-image: linear-gradient(transparent, #000 10%, #000 84%, transparent);
     display: flex;
     flex-direction: column;
     gap: 6px;
+  }
+  .expanded .lines-scroll {
+    height: min(100%, calc(var(--lrc-size, 26px) * 8.45));
+    padding: 0 10px;
+    gap: calc(var(--lrc-size, 26px) * 0.3);
+    mask-image: linear-gradient(transparent 0%, #000 5%, #000 92%, transparent 100%);
+  }
+  .expanded.with-sub .lines-scroll {
+    height: min(100%, calc(var(--lrc-size, 26px) * 13.5));
   }
   .lines-scroll::-webkit-scrollbar {
     display: none;
   }
   .spacer {
-    height: 36%;
+    height: 34%;
     flex-shrink: 0;
+  }
+  .expanded .spacer.top {
+    height: 6px;
+  }
+  .expanded .spacer.bottom {
+    height: 54%;
   }
   .line {
     display: block;
@@ -439,7 +482,8 @@
     transition: color 300ms ease, filter 300ms ease, transform 380ms cubic-bezier(0.25, 1.2, 0.4, 1);
   }
   .expanded .line {
-    color: rgba(255, 255, 255, 0.36);
+    padding: calc(var(--lrc-size, 26px) * 0.27) 12px;
+    color: rgba(255, 255, 255, 0.5);
   }
   .manual .line {
     filter: none;
@@ -462,7 +506,7 @@
   .line-txt {
     font-size: var(--lrc-size, 22px);
     font-weight: 700;
-    line-height: 1.26;
+    line-height: 1.25;
     letter-spacing: -0.02em;
   }
   .line.bg-vocal .line-txt {

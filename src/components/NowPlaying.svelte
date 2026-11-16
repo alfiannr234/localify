@@ -51,7 +51,9 @@
     <div class="stage">
       <div class="player-col">
         <div class="art-wrap" class:paused={!player.playing}>
-          <Artwork hash={track.artHash} alt={track.album} size={340} thumb={false} radius={14} />
+          <div class="art-box">
+            <Artwork hash={track.artHash} alt={track.album} size={340} thumb={false} radius={14} />
+          </div>
         </div>
 
         <div class="titles">
@@ -194,15 +196,17 @@
         </div>
       </div>
 
-      <!-- Borderless clean side area inspired by Qistara without table/box outlines -->
+      <!-- Borderless clean side area aligned top-to-bottom with the player column -->
       <div class="side-pane">
-        {#if sideMode === 'queue'}
-          <QueueList />
-        {:else if quranStore.rec}
-          <QuranView onOverlay={true} />
-        {:else}
-          <LyricsView expanded={true} />
-        {/if}
+        <div class="side-inner">
+          {#if sideMode === 'queue'}
+            <QueueList />
+          {:else if quranStore.rec}
+            <QuranView onOverlay={true} />
+          {:else}
+            <LyricsView expanded={true} />
+          {/if}
+        </div>
       </div>
     </div>
   </div>
@@ -233,13 +237,15 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(10, 14, 24, 0.25), rgba(8, 12, 22, 0.56));
+    background: linear-gradient(180deg, rgba(8, 12, 22, 0.42), rgba(6, 10, 18, 0.68));
   }
   .close-btn {
     position: absolute;
     top: 14px;
     left: 16px;
     z-index: 5;
+    width: 36px;
+    height: 36px;
     color: rgba(255, 255, 255, 0.85);
   }
   .close-btn:hover {
@@ -250,18 +256,19 @@
     position: relative;
     z-index: 2;
     height: 100%;
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
-    padding: 44px 5vw;
+    padding: clamp(36px, 5.5vh, 52px) 5vw clamp(20px, 3.5vh, 34px);
     display: grid;
-    grid-template-columns: minmax(300px, 400px) 1fr;
+    grid-template-columns: minmax(260px, 370px) minmax(0, 1fr);
     gap: 5vw;
-    align-items: center;
+    align-content: center;
+    align-items: stretch;
   }
   .player-col {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: clamp(10px, 1.8vh, 16px);
     min-width: 0;
   }
   .art-wrap {
@@ -270,19 +277,27 @@
     border-radius: 14px;
     transition: transform 320ms var(--ease);
   }
+  .art-box {
+    width: clamp(160px, 33vh, 300px);
+    aspect-ratio: 1;
+  }
+  .art-box :global(.art) {
+    width: 100% !important;
+    height: 100% !important;
+  }
   .art-wrap.paused {
     transform: scale(0.86);
   }
   .titles h1 {
     margin: 0;
-    font-size: 21px;
+    font-size: clamp(18px, 2.4vh, 21px);
     font-weight: 700;
     color: #fff;
   }
   .titles p {
-    margin: 3px 0 0;
-    font-size: 15.5px;
-    color: rgba(255, 255, 255, 0.68);
+    margin: 2px 0 0;
+    font-size: clamp(13.5px, 1.8vh, 15.5px);
+    color: rgba(255, 255, 255, 0.72);
   }
   .scrub :global(.rail) {
     background: rgba(255, 255, 255, 0.22);
@@ -294,7 +309,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.68);
     margin-top: 2px;
   }
   .transport {
@@ -303,7 +318,7 @@
     justify-content: space-between;
   }
   .t-btn {
-    color: rgba(255, 255, 255, 0.78);
+    color: rgba(255, 255, 255, 0.82);
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -313,8 +328,8 @@
     background: rgba(255, 255, 255, 0.16);
   }
   .play-btn {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     color: #fff;
   }
@@ -326,7 +341,7 @@
   .bottom-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
   .vol {
     flex: 1;
@@ -341,7 +356,9 @@
     background: rgba(255, 255, 255, 0.9);
   }
   .bottom-row .btn-icon {
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.78);
+    width: 34px;
+    height: 34px;
   }
   .bottom-row .btn-icon.on {
     color: #fff;
@@ -374,20 +391,32 @@
     background: rgba(255, 255, 255, 0.14);
   }
   .side-pane {
-    height: min(80vh, 720px);
+    position: relative;
+    align-self: stretch;
     min-height: 0;
     width: 100%;
-    max-width: 640px;
+    max-width: 660px;
+    justify-self: center;
     background: transparent;
     border: none;
+  }
+  .side-inner {
+    position: absolute;
+    inset: 0;
     overflow: hidden;
   }
-  @media (max-width: 860px) {
+  @media (max-width: 740px) {
     .stage {
       grid-template-columns: 1fr;
+      align-content: start;
+      overflow-y: auto;
+      gap: 20px;
     }
-    .art-wrap {
-      display: none;
+    .art-box {
+      width: clamp(120px, 24vh, 180px);
+    }
+    .side-pane {
+      height: clamp(240px, 42vh, 340px);
     }
   }
 </style>

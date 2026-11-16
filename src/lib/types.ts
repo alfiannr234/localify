@@ -117,4 +117,6 @@ export type ViewRoute =
   | { kind: 'playlist'; id: number }
   | { kind: 'search' }
   | { kind: 'eq' }
+  | { kind: 'downloads' }
+  | { kind: 'vocabulary' }
   | { kind: 'settings' };

@@ -11,6 +11,7 @@
   import { api } from './lib/api';
   import { applyAppearance } from './lib/appearance.svelte';
   import { eqStore } from './lib/eq.svelte';
+  import { learnStore } from './lib/learn.svelte';
   import { library } from './lib/library.svelte';
   import { nav } from './lib/nav.svelte';
   import { player } from './lib/player.svelte';
@@ -18,6 +19,7 @@
   import AlbumGrid from './views/AlbumGrid.svelte';
   import AlbumView from './views/AlbumView.svelte';
   import Artists from './views/Artists.svelte';
+  import Downloads from './views/Downloads.svelte';
   import EqView from './views/EqView.svelte';
   import Genres from './views/Genres.svelte';
   import Home from './views/Home.svelte';
@@ -25,6 +27,7 @@
   import Search from './views/Search.svelte';
   import Settings from './views/Settings.svelte';
   import Songs from './views/Songs.svelte';
+  import Vocabulary from './views/Vocabulary.svelte';
 
   let ready = $state(false);
 
@@ -34,6 +37,7 @@
     void (async () => {
       await settings.load();
       await eqStore.load();
+      await learnStore.loadVocab();
       applyAppearance(null);
       await library.init();
       await player.initListeners();
@@ -135,6 +139,10 @@
             <Search />
           {:else if nav.current.kind === 'eq'}
             <EqView />
+          {:else if nav.current.kind === 'downloads'}
+            <Downloads />
+          {:else if nav.current.kind === 'vocabulary'}
+            <Vocabulary />
           {:else if nav.current.kind === 'settings'}
             <Settings />
           {/if}

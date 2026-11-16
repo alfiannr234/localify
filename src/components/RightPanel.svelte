@@ -1,8 +1,10 @@
 <script lang="ts">
   import { player } from '../lib/player.svelte';
+  import { quranStore } from '../lib/quran.svelte';
   import Icon from './Icon.svelte';
   import LyricsView from './LyricsView.svelte';
   import QueueList from './QueueList.svelte';
+  import QuranView from './QuranView.svelte';
 </script>
 
 {#if player.rightPanel}
@@ -15,7 +17,7 @@
           class:active={player.rightPanel === 'lyrics'}
           onclick={() => (player.rightPanel = 'lyrics')}
         >
-          Lyrics
+          {quranStore.rec ? "Qur'an" : 'Lyrics'}
         </button>
         <button
           type="button"
@@ -37,10 +39,12 @@
     </div>
 
     <div class="body">
-      {#if player.rightPanel === 'lyrics'}
-        <LyricsView />
-      {:else}
+      {#if player.rightPanel === 'queue'}
         <QueueList />
+      {:else if quranStore.rec}
+        <QuranView />
+      {:else}
+        <LyricsView />
       {/if}
     </div>
   </aside>

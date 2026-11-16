@@ -8,7 +8,13 @@ import {
   parseOffsetInput,
 } from '../lib/lyrics';
 import { buildQueueOrder, resolveNextIndex } from '../lib/queue';
+import { alignAyahs, detectRecitation } from '../lib/quran';
+import { buildFurigana, kanaToRomaji } from '../lib/kana';
+import { parseLookup } from '../lib/lookup';
+import { resolveOrderedLyrics } from '../lib/lyricsources';
 import { needsRomanization, romanizeText } from '../lib/romanize';
+import { parseGtx } from '../lib/translate';
+import { reviewVocab } from '../lib/vocab';
 import type { Track } from '../lib/types';
 
 function mockTrack(path: string, title = 'Song'): Track {
@@ -119,5 +125,96 @@ describe('EQ & Color WCAG contrast', () => {
 
     const resLight = resolveAccessibleAccent('#ffaa66', '#F4F5F7', true);
     expect(contrastRatio(resLight.accent, '#F4F5F7')).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('Lyrics sources order, Qur\'an detection, Learn mode & Translation', () => {
+  it('respects custom source order and prefers word-timed lyrics when enabled', async () => {
+    const lineOnly = parseLyrics('[00:05.00]Hello world', 'lrc');
+    const wordSynced = parseLyrics('[5000,2000]<0,500,0>Hel<500,500,0>lo', 'krc');
+    const out = await resolveOrderedLyrics(
+      [
+        { id: 'lrclib', on: true },
+        { id: 'kugou', on: true },
+      ],
+      async (id) => ({ parsed: id === 'lrclib' ? lineOnly : wordSynced }),
+      true
+    );
+    expect(out?.source).toBe('kugou');
+  });
+
+  it('recognises Qur\'an surahs, Juz Amma, Hafs, and Shu\'bah from titles', () => {
+    expect(
+      detectRecitation({
+        title: 'Surah Al-Fatihah',
+        album: 'Mishary Alafasy',
+        artist: 'Alafasy',
+        albumArtist: '',
+        path: 'C:\\Music\\001.mp3',
+        trackNo: 1,
+      })
+    ).toEqual({ surahs: [1], riwayah: 'hafs', partial: false });
+
+    const shubah = detectRecitation({
+      title: "Juz 'Amma (Shu'bah)",
+      album: 'Quran',
+      artist: 'Reciter',
+      albumArtist: '',
+      path: 'C:\\Quran\\juz30.mp3',
+      trackNo: null,
+    });
+    expect(shubah?.surahs[0]).toBe(78);
+    expect(shubah?.surahs.at(-1)).toBe(114);
+    expect(shubah?.riwayah).toBe('shubah');
+
+    const starts = alignAyahs(
+      [{ weight: 4, flexible: true }, { weight: 10 }, { weight: 10 }],
+      [[4.0, 4.8], [14.0, 14.8]],
+      24.0
+    );
+    expect(starts.length).toBe(3);
+    expect(starts[1]).toBeGreaterThan(starts[0]);
+    expect(starts[2]).toBeGreaterThan(starts[1]);
+  });
+
+  it('builds furigana, parses GTX/Lookup replies, and advances Leitner boxes', () => {
+    expect(kanaToRomaji('こんや きって')).toBe("kon'ya kitte");
+    expect(buildFurigana('引き出し', 'ひきだし')).toEqual([
+      { text: '引', rt: 'ひ' },
+      { text: 'き' },
+      { text: '出', rt: 'だ' },
+      { text: 'し' },
+    ]);
+
+    const gtx = parseGtx([[['Halo', 'Hello']], null, 'en']);
+    expect(gtx.text).toBe('Halo');
+    const look = parseLookup([[['cinta', 'love'], [null, null, null, 'ai']], [['noun', ['love', 'affection']]], 'ja']);
+    expect(look.romaji).toBe('ai');
+    expect(look.senses[0].terms).toContain('love');
+
+    const card = reviewVocab(
+      {
+        id: 'ja:愛',
+        word: '愛',
+        reading: 'あい',
+        romaji: 'ai',
+        pos: 'noun',
+        meanings: ['love'],
+        lang: 'ja',
+        line: '',
+        translation: '',
+        path: '',
+        title: '',
+        artist: '',
+        t: 0,
+        added: 0,
+        box: 0,
+        due: 0,
+      },
+      true,
+      1000
+    );
+    expect(card.box).toBe(1);
+    expect(card.due).toBeGreaterThan(1000);
   });
 });

@@ -71,6 +71,14 @@ export const api = {
   loadLocalLyrics: (trackPath: string) => invoke<LyricsResult | null>('load_local_lyrics', { trackPath }),
   fetchOnlineLyrics: (trackPath: string, title: string, artist: string, album: string, duration: number) =>
     invoke<LyricsResult | null>('fetch_online_lyrics', { trackPath, title, artist, album, duration }),
+  fetchLyricsSource: (
+    source: string,
+    trackPath: string,
+    title: string,
+    artist: string,
+    album: string,
+    duration: number
+  ) => invoke<LyricsResult | null>('fetch_lyrics_source', { source, trackPath, title, artist, album, duration }),
   searchOnlineLyrics: (title: string, artist: string, album: string, duration: number) =>
     invoke<OnlineLyricsCandidate[]>('search_online_lyrics', { title, artist, album, duration }),
   saveLyricsChoice: (trackPath: string, format: string, content: string) =>
@@ -108,4 +116,29 @@ export const api = {
   revealInExplorer: (path: string) => invoke<void>('reveal_in_explorer', { path }),
   setWindowTheme: (theme: string) => invoke<void>('set_window_theme', { theme }),
   getLaunchFiles: () => invoke<string[]>('get_launch_files'),
+
+  toolsStatus: () => invoke<{ ytdlp: string | null; ffmpeg: string | null }>('tools_status'),
+  toolInstall: (tool: 'ytdlp' | 'ffmpeg') => invoke<void>('tool_install', { tool }),
+  ytdlpUpdate: () => invoke<string>('ytdlp_update'),
+  downloadDefaultFolder: () => invoke<string>('download_default_folder'),
+  downloadAdd: (params: {
+    urls: string[];
+    preset: 'audioOriginal' | 'audioMp3' | 'video1080' | 'videoBest';
+    dest: string;
+    addToLibrary: boolean;
+  }) => invoke<number>('download_add', params),
+  downloadCancel: (id: number) => invoke<void>('download_cancel', { id }),
+
+  subsonicStatus: () => invoke<{ server: string; user: string } | null>('subsonic_status'),
+  subsonicConnect: (server: string, user: string, password: string) =>
+    invoke<{ server: string; user: string }>('subsonic_connect', { server, user, password }),
+  subsonicLogout: () => invoke<void>('subsonic_logout'),
+
+  googleTranslate: (text: string, from: string, to: string, dictionary: boolean) =>
+    invoke<string>('google_translate', { text, from, to, dictionary }),
+  jishoLookup: (word: string) => invoke<string>('jisho_lookup', { word }),
+
+  quranFetch: (source: Record<string, unknown>) => invoke<unknown>('quran_fetch', { source }),
+  quranPauses: (path: string) =>
+    invoke<{ duration: number; pauses: Array<[number, number]> }>('quran_pauses', { path }),
 };

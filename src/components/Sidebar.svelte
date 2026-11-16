@@ -1,10 +1,14 @@
 <script lang="ts">
   import { open } from '@tauri-apps/plugin-dialog';
   import { api } from '../lib/api';
+  import { learnStore } from '../lib/learn.svelte';
   import { library } from '../lib/library.svelte';
   import { nav } from '../lib/nav.svelte';
+  import { dueVocabItems } from '../lib/vocab';
   import type { ViewRoute } from '../lib/types';
   import Icon from './Icon.svelte';
+
+  let dueCount = $derived(dueVocabItems(learnStore.vocab).length);
 
   let creating = $state(false);
   let newName = $state('');
@@ -115,6 +119,27 @@
       >
         <Icon name="eq" size={18} />
         <span>Equalizer</span>
+      </button>
+      <button
+        type="button"
+        class="nav-item"
+        class:active={isActive('downloads')}
+        onclick={() => nav.go({ kind: 'downloads' })}
+      >
+        <Icon name="download" size={18} />
+        <span>Downloads</span>
+      </button>
+      <button
+        type="button"
+        class="nav-item"
+        class:active={isActive('vocabulary')}
+        onclick={() => nav.go({ kind: 'vocabulary' })}
+      >
+        <Icon name="book-open" size={18} />
+        <span>Vocabulary</span>
+        {#if dueCount > 0}
+          <span class="count tabular">{dueCount}</span>
+        {/if}
       </button>
     </div>
 

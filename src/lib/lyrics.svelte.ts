@@ -1,7 +1,10 @@
 import { api } from './api';
 import { getActiveLyricState, parseLyrics } from './lyrics';
+import { resolveOrderedLyrics } from './lyricsources';
 import { needsRomanization, romanizeText } from './romanize';
 import { settings } from './settings.svelte';
+import { learnStore } from './learn.svelte';
+import { triggerTranslateSync } from './translate.svelte';
 import type { LyricLine, OnlineLyricsCandidate, Track } from './types';
 
 class LyricsStore {
@@ -39,23 +42,40 @@ class LyricsStore {
       if (reqId !== this.reqCounter) return;
       this.trackOffset = savedOffset ?? settings.defaultOffset;
 
-      if (local) {
+      if (local && local.source === 'cache') {
         this.applyResult(local.source, local.format, local.content);
         this.loading = false;
         return;
       }
 
-      if (settings.autoFetchLyrics) {
-        const fetched = await api.fetchOnlineLyrics(
-          track.path,
-          track.title,
-          track.artist,
-          track.album,
-          track.duration
-        );
-        if (reqId !== this.reqCounter) return;
-        if (fetched) {
-          this.applyResult(fetched.source, fetched.format, fetched.content);
+      const resolved = await resolveOrderedLyrics(
+        settings.lyricsSources,
+        async (sourceId) => {
+          const res =
+            sourceId === 'local'
+              ? local
+              : await api.fetchLyricsSource(
+                  sourceId,
+                  track.path,
+                  track.title,
+                  track.artist,
+                  track.album,
+                  track.duration
+                );
+          if (!res) return null;
+          return {
+            res,
+            parsed: parseLyrics(res.content, res.format),
+          };
+        },
+        settings.preferWordTiming
+      );
+      if (reqId !== this.reqCounter) return;
+      if (resolved) {
+        const { res } = resolved.result;
+        this.applyResult(resolved.source, res.format, res.content);
+        if (resolved.source !== 'local') {
+          void api.saveLyricsChoice(track.path, res.format, res.content);
         }
       }
     } finally {
@@ -109,6 +129,8 @@ class LyricsStore {
     }
     this.hasRomanizable = anyRom;
     this.romanizedLines = roms;
+    triggerTranslateSync();
+    void learnStore.analyze(this.lines, settings.learnLyrics);
   }
 
   activeAt(songSecs: number) {
@@ -162,26 +184,7 @@ class LyricsStore {
 
   async refreshOnline(track: Track): Promise<void> {
     await api.clearCachedLyrics(track.path);
-    this.loading = true;
-    try {
-      const fetched = await api.fetchOnlineLyrics(
-        track.path,
-        track.title,
-        track.artist,
-        track.album,
-        track.duration
-      );
-      if (this.trackPath === track.path) {
-        if (fetched) {
-          this.applyResult(fetched.source, fetched.format, fetched.content);
-        } else {
-          this.lines = [];
-          this.synced = false;
-        }
-      }
-    } finally {
-      this.loading = false;
-    }
+    await this.loadForTrack(track);
   }
 }
 

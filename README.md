@@ -27,7 +27,10 @@
 ## Key Features
 
 - **Pure Rust Audio Engine & Biquad EQ**: Decodes `MP3`, `FLAC`, `WAV`, `M4A / AAC / ALAC`, `OGG Vorbis`, `Opus`, `AIFF`, and `WavPack` via `rodio` + `symphonia` with selectable WASAPI output devices and a real-time 10-band RBJ biquad equalizer + preamp.
-- **Word-Synced & Online Lyrics**: Loads local `.ttml`, `.krc`, `.lrc`, `.txt`, and embedded lyrics, or fetches automatically from **LRCLIB**, **NetEase**, and **Kugou** (with KRC decryption for syllable timing) plus offline Japanese Kana/Kanji and Korean Hangul romanization.
+- **Word-Synced, Ordered & Translated Lyrics**: Loads local `.ttml`, `.krc`, `.lrc`, `.txt`, and embedded tags, plus **Navidrome / Subsonic**, **LRCLIB**, **NetEase**, and **Kugou** in the exact order you configure with an optional word-timing preference and line-by-line translation underneath each line.
+- **Learn Mode & Vocabulary Review**: Tap any word in lyrics for dictionary meanings (plus Japanese `<ruby>` furigana and Hepburn romaji) and review saved words with Leitner spaced repetition flashcards and one-click lyric line replay.
+- **Qur'an Recitation Recognition**: Automatically recognises surahs, Juz 'Amma, Juz Tabarak, Hafs, and Shu'bah recitations by title; aligns ayahs to recitation pauses; shows Uthmani text with word meanings, transliteration, Kemenag, Saheeh International, and Clear Quran translations; and saves words to Vocabulary.
+- **Downloads**: Paste video, song, playlist, or channel URLs to save original audio, MP3, 1080p, or best video directly into your library folder using official GitHub releases of `yt-dlp` and `ffmpeg` verified against published SHA-256 checksums.
 - **Per-Track Lyrics Offset**: Stores individual timing adjustments per song in SQLite with direct text editing and `-0.1s` / `+0.1s` controls.
 - **Fast Library & Batch Workflow**: Parallel metadata/artwork indexer with SQLite WAL persistence, automatic folder watching, virtualized song list with `A-Z` jump rail, multi-select batch play/queue actions, `.m3u8` import/export, and tag + technical properties editor.
 - **Desktop Integrations**: Windows SMTC media controls with lock-screen artwork, frameless always-on-top MiniPlayer, multi-theme Obsidian + Warm Zest palette with adaptive cover accent, and Discord Rich Presence (`Listening` activity with live cover lookup).

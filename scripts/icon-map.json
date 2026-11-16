@@ -61,5 +61,16 @@
   "warning": "warning",
   "globe": "globe",
   "reset": "arrow-counter-clockwise",
-  "file-text": "file-text"
+  "file-text": "file-text",
+  "translate": "translate",
+  "graduation-cap": "graduation-cap",
+  "cards": "cards",
+  "star": "star",
+  "star-fill": "star-fill",
+  "dots-six-vertical": "dots-six-vertical",
+  "crosshair": "crosshair",
+  "book-open": "book-open",
+  "check-circle": "check-circle-fill",
+  "warning-circle": "warning-circle-fill",
+  "server": "hard-drives"
 }

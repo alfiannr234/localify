@@ -1,12 +1,16 @@
 mod audio;
 mod db;
 mod discord;
+mod downloads;
 mod legacy;
 mod lyrics;
 mod lyrics_online;
 mod media_keys;
+mod quran;
 mod scan;
+mod subsonic;
 mod tags;
+mod translate;
 
 use audio::{list_output_devices, AudioDeviceInfo, AudioEngine, AudioTick, EqConfig};
 use db::{Db, PlaylistSummary, Track};
@@ -15,7 +19,9 @@ use lyrics::{
     assign_custom_lyrics, cache_lyrics_for_track, load_local_lyrics as load_local_lyrics_impl,
     LyricsResult,
 };
-use lyrics_online::{fetch_best_online_lyrics, search_all_providers, OnlineLyricsCandidate};
+use lyrics_online::{
+    fetch_best_online_lyrics, fetch_from_provider, search_all_providers, OnlineLyricsCandidate,
+};
 use media_keys::SmtcController;
 use notify::RecursiveMode;
 use notify_debouncer_mini::new_debouncer;
@@ -38,7 +44,7 @@ pub struct AppState {
     pub watcher: Mutex<Option<notify_debouncer_mini::Debouncer<notify::RecommendedWatcher>>>,
 }
 
-fn rebuild_watchers(state: &AppState, app: &AppHandle) {
+pub fn rebuild_watchers(state: &AppState, app: &AppHandle) {
     let Ok(folders) = state.db.get_folders() else {
         return;
     };
@@ -493,6 +499,48 @@ fn set_window_theme(theme: String, app: AppHandle) {
 }
 
 #[tauri::command]
+async fn fetch_lyrics_source(
+    source: String,
+    track_path: String,
+    title: String,
+    artist: String,
+    album: String,
+    duration: f64,
+    state: State<'_, AppState>,
+) -> Result<Option<LyricsResult>, String> {
+    if source == "local" {
+        return Ok(load_local_lyrics_impl(&track_path, &state.lyrics_dir));
+    }
+    if source == "subsonic" {
+        let db = Arc::clone(&state.db);
+        return tauri::async_runtime::spawn_blocking(move || {
+            let Some((content, synced)) = subsonic::fetch_subsonic_lyrics(&db, &artist, &title) else {
+                return None;
+            };
+            let fmt = if synced { "lrc" } else { "txt" };
+            Some(LyricsResult {
+                source: "subsonic".into(),
+                format: fmt.into(),
+                content,
+                path: None,
+            })
+        })
+        .await
+        .map_err(|e| e.to_string());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        fetch_from_provider(&source, &title, &artist, &album, duration).map(|c| LyricsResult {
+            source: c.provider,
+            format: c.format,
+            content: c.content,
+            path: None,
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn get_launch_files(state: State<AppState>) -> Vec<String> {
     if let Ok(mut guard) = state.launch_files.lock() {
         let out = guard.clone();
@@ -561,6 +609,7 @@ pub fn run() {
 
             rebuild_watchers(&state, app.handle());
             app.manage(state);
+            app.manage(downloads::DownloadManager::default());
 
             // Background startup incremental scan so the window renders immediately
             let handle = app.handle().clone();
@@ -613,6 +662,7 @@ pub fn run() {
             set_track_offset,
             load_local_lyrics,
             fetch_online_lyrics,
+            fetch_lyrics_source,
             search_online_lyrics,
             save_lyrics_choice,
             assign_lyrics_file,
@@ -627,6 +677,19 @@ pub fn run() {
             reveal_in_explorer,
             set_window_theme,
             get_launch_files,
+            downloads::tools_status,
+            downloads::tool_install,
+            downloads::ytdlp_update,
+            downloads::download_default_folder,
+            downloads::download_add,
+            downloads::download_cancel,
+            subsonic::subsonic_status,
+            subsonic::subsonic_connect,
+            subsonic::subsonic_logout,
+            translate::google_translate,
+            translate::jisho_lookup,
+            quran::quran_fetch,
+            quran::quran_pauses,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Localify");

@@ -5,6 +5,7 @@ import { applyAppearance } from './appearance.svelte';
 import { library } from './library.svelte';
 import { lyricsStore } from './lyrics.svelte';
 import { buildQueueOrder, resolveNextIndex, resolvePrevIndex } from './queue';
+import { quranStore } from './quran.svelte';
 import { settings } from './settings.svelte';
 import type { AudioTick, RepeatMode, Track } from './types';
 
@@ -203,8 +204,10 @@ class PlayerStore {
       this.anchorPerf = performance.now();
       if (track) {
         void library.markPlayed(track.path);
+        void quranStore.loadTrack(track);
         void lyricsStore.loadForTrack(track);
       } else {
+        void quranStore.loadTrack(null);
         void lyricsStore.loadForPath(path);
       }
       this.syncIntegrations();

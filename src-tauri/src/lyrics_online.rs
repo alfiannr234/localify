@@ -139,6 +139,30 @@ pub fn search_all_providers(
     all
 }
 
+pub fn fetch_from_provider(
+    provider: &str,
+    title: &str,
+    artist: &str,
+    album: &str,
+    duration: f64,
+) -> Option<OnlineLyricsCandidate> {
+    let clean_title = clean_query(title);
+    let clean_artist = clean_query(artist);
+    let agent = http_agent();
+    let mut cands = match provider {
+        "lrclib" => fetch_lrclib(&agent, &clean_title, &clean_artist, album, duration),
+        "netease" => fetch_netease(&agent, &clean_title, &clean_artist, duration),
+        "kugou" => fetch_kugou(&agent, &clean_title, &clean_artist, duration),
+        _ => Vec::new(),
+    };
+    cands.sort_by(|a, b| {
+        let sa = score_candidate(a, &clean_title, &clean_artist, duration);
+        let sb = score_candidate(b, &clean_title, &clean_artist, duration);
+        sb.partial_cmp(&sa).unwrap_or(std::cmp::Ordering::Equal)
+    });
+    cands.into_iter().next()
+}
+
 fn score_candidate(c: &OnlineLyricsCandidate, title: &str, artist: &str, duration: f64) -> f64 {
     let mut score = 0.0;
     if c.word_synced {

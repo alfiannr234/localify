@@ -1,11 +1,14 @@
 <script lang="ts">
-  import { open } from '@tauri-apps/plugin-dialog';
-  import { formatTime } from '../lib/format';
-  import { formatOffsetSeconds, parseOffsetInput } from '../lib/lyrics';
+  import { buildFurigana } from '../lib/kana';
+  import { learnStore } from '../lib/learn.svelte';
   import { lyricsStore } from '../lib/lyrics.svelte';
   import { player } from '../lib/player.svelte';
   import { settings } from '../lib/settings.svelte';
+  import { languageName } from '../lib/translate';
+  import { translateStore, triggerTranslateSync } from '../lib/translate.svelte';
+  import { formatTime } from '../lib/format';
   import Icon from './Icon.svelte';
+  import WordCard from './WordCard.svelte';
 
   interface Props {
     expanded?: boolean;
@@ -20,22 +23,31 @@
   let manualTimer: ReturnType<typeof setTimeout> | null = null;
   let searchOpen = $state(false);
 
-  let offsetDraft = $state('0.00');
-  let offsetFocused = $state(false);
-
-  $effect(() => {
-    if (!offsetFocused) {
-      offsetDraft = formatOffsetSeconds(lyricsStore.trackOffset);
+  let learning = $derived(settings.learnLyrics && Boolean(learnStore.pieces));
+  let gapStart = $derived.by(() => {
+    const idx = active.lineIndex;
+    const lines = lyricsStore.lines;
+    if (!lyricsStore.synced || lines.length === 0) return null;
+    if (idx < 0 && lines[0].time > 2.2) {
+      return { start: 0, end: lines[0].time };
     }
+    if (idx >= 0 && idx + 1 < lines.length) {
+      const curEnd = lines[idx].end;
+      const nextStart = lines[idx + 1].time;
+      if (nextStart - curEnd > 4.0 && player.smoothPosition >= curEnd) {
+        return { start: curEnd, end: nextStart };
+      }
+    }
+    return null;
   });
 
   $effect(() => {
     const idx = active.lineIndex;
-    if (idx < 0 || manualScrolling || !scrollerEl) return;
+    if (idx < 0 || manualScrolling || learnStore.card.open || !scrollerEl) return;
     const lineEl = scrollerEl.querySelector<HTMLElement>(`[data-line="${idx}"]`);
     if (lineEl) {
       const targetTop =
-        lineEl.offsetTop - scrollerEl.clientHeight * (expanded ? 0.36 : 0.38) + lineEl.offsetHeight / 2;
+        lineEl.offsetTop - scrollerEl.clientHeight * 0.34 + lineEl.offsetHeight / 2;
       scrollerEl.scrollTo({
         top: Math.max(0, targetTop),
         behavior: 'smooth',
@@ -48,46 +60,23 @@
     if (manualTimer) clearTimeout(manualTimer);
     manualTimer = setTimeout(() => {
       manualScrolling = false;
-    }, 3200);
+    }, 3000);
   }
 
-  function recenter(): void {
-    manualScrolling = false;
-    if (scrollerEl && active.lineIndex >= 0) {
-      const lineEl = scrollerEl.querySelector<HTMLElement>(`[data-line="${active.lineIndex}"]`);
-      if (lineEl) {
-        scrollerEl.scrollTo({
-          top: Math.max(
-            0,
-            lineEl.offsetTop - scrollerEl.clientHeight * 0.36 + lineEl.offsetHeight / 2
-          ),
-          behavior: 'smooth',
-        });
-      }
-    }
+  function toggleLearn(): void {
+    settings.learnLyrics = !settings.learnLyrics;
+    settings.save('learn_lyrics', String(settings.learnLyrics));
+    void learnStore.analyze(lyricsStore.lines, settings.learnLyrics);
+    triggerTranslateSync();
   }
 
-  function commitOffset(): void {
-    offsetFocused = false;
-    const parsed = parseOffsetInput(offsetDraft);
-    if (parsed !== null) {
-      void lyricsStore.setOffset(parsed);
-    } else {
-      offsetDraft = formatOffsetSeconds(lyricsStore.trackOffset);
-    }
+  function toggleTranslate(): void {
+    settings.translateLyrics = !settings.translateLyrics;
+    settings.save('translate_lyrics', String(settings.translateLyrics));
+    triggerTranslateSync();
   }
 
-  async function pickLocalLyrics(): Promise<void> {
-    if (!track) return;
-    const picked = await open({
-      multiple: false,
-      filters: [{ name: 'Lyrics files', extensions: ['lrc', 'ttml', 'krc', 'txt'] }],
-    });
-    if (!picked || Array.isArray(picked)) return;
-    await lyricsStore.assignCustomFile(track.path, picked);
-  }
-
-  async function openOnlineSearch(): Promise<void> {
+  async function toggleVersions(): Promise<void> {
     if (!track) return;
     searchOpen = !searchOpen;
     if (searchOpen && lyricsStore.searchResults.length === 0) {
@@ -96,99 +85,67 @@
   }
 </script>
 
-<div class="lyrics-shell" class:expanded>
-  <div class="toolbar">
-    {#if lyricsStore.hasRomanizable}
-      <button
-        type="button"
-        class="tool-chip"
-        class:active={settings.romanizeLyrics}
-        onclick={() => {
-          settings.romanizeLyrics = !settings.romanizeLyrics;
-          settings.save('romanize_lyrics', String(settings.romanizeLyrics));
-        }}
-      >
-        Romaji
-      </button>
-    {/if}
+<div class="lyrics-pane" class:expanded class:learning class:manual={manualScrolling}>
+  {#if track}
+    <div class="floating-tools">
+      {#if lyricsStore.lines.length > 0}
+        <button
+          type="button"
+          class="icon-tool"
+          class:on={settings.learnLyrics}
+          aria-pressed={settings.learnLyrics}
+          aria-label="Learn mode"
+          title="Learn mode: tap any word for meaning, furigana, and vocabulary"
+          onclick={toggleLearn}
+        >
+          <Icon name="graduation-cap" size={18} />
+        </button>
+        {#if !settings.learnLyrics}
+          <button
+            type="button"
+            class="icon-tool"
+            class:on={settings.translateLyrics}
+            class:busy={translateStore.busy}
+            aria-pressed={settings.translateLyrics}
+            aria-label="Translate lyrics"
+            title="Translate lyrics to {languageName(translateStore.targetLanguage())}"
+            onclick={toggleTranslate}
+          >
+            <Icon name="translate" size={18} />
+          </button>
+        {/if}
+      {/if}
 
-    <!-- Strict user design rule: ONLY editable text input + [-0.1s] & [+0.1s] buttons, no save toast popup -->
-    <div class="offset-group" aria-label="Sinkronisasi lirik">
       <button
         type="button"
-        class="step-btn tabular"
-        onclick={() => lyricsStore.adjustOffset(-0.1)}
+        class="icon-tool"
+        class:on={searchOpen}
+        aria-label="Choose online lyrics version"
+        title="Search online lyrics versions"
+        onclick={toggleVersions}
       >
-        -0.1s
-      </button>
-      <input
-        type="text"
-        class="offset-input tabular"
-        aria-label="Lyrics offset in seconds"
-        bind:value={offsetDraft}
-        onfocus={() => (offsetFocused = true)}
-        onblur={commitOffset}
-        onkeydown={(e) => {
-          if (e.key === 'Enter') {
-            (e.currentTarget as HTMLInputElement).blur();
-          }
-        }}
-      />
-      <button
-        type="button"
-        class="step-btn tabular"
-        onclick={() => lyricsStore.adjustOffset(0.1)}
-      >
-        +0.1s
+        <Icon name="search" size={16} />
       </button>
     </div>
-
-    <div class="tool-right">
-      <button
-        type="button"
-        class="btn-icon small"
-        title="Search online lyrics"
-        aria-label="Search online lyrics"
-        disabled={!track}
-        onclick={openOnlineSearch}
-      >
-        <Icon name="search" size={15} />
-      </button>
-      <button
-        type="button"
-        class="btn-icon small"
-        title="Load .lrc or .ttml file"
-        aria-label="Load local lyrics file"
-        disabled={!track}
-        onclick={pickLocalLyrics}
-      >
-        <Icon name="file-text" size={15} />
-      </button>
-      <button
-        type="button"
-        class="btn-icon small"
-        title="Refresh lyrics from providers"
-        aria-label="Refresh online lyrics"
-        disabled={!track || lyricsStore.loading}
-        onclick={() => track && lyricsStore.refreshOnline(track)}
-      >
-        <Icon name="refresh" size={15} class={lyricsStore.loading ? 'spin' : ''} />
-      </button>
-    </div>
-  </div>
+  {/if}
 
   {#if searchOpen && track}
-    <div class="cand-drawer scroll-thin">
+    <div class="cand-overlay scroll-thin">
       <div class="cand-head">
         <span>Online Lyrics Versions</span>
-        <button type="button" class="btn-icon small" aria-label="Close" onclick={() => (searchOpen = false)}>
+        <button
+          type="button"
+          class="btn-icon tiny"
+          aria-label="Close search"
+          onclick={() => (searchOpen = false)}
+        >
           <Icon name="close" size={14} />
         </button>
       </div>
       {#if lyricsStore.searching}
-        <div class="cand-empty">Searching LRCLIB, NetEase, and Kugou...</div>
+        <div class="cand-msg">Searching LRCLIB, NetEase, and Kugou...</div>
       {:else if lyricsStore.searchResults.length === 0}
-        <div class="cand-empty">No matching lyrics found online.</div>
+        <div class="cand-msg">No matching online lyrics found.</div>
       {:else}
         {#each lyricsStore.searchResults as cand (cand.id)}
           <button
@@ -199,15 +156,13 @@
               searchOpen = false;
             }}
           >
-            <div class="cand-top">
-              <span class="cand-title truncate">{cand.title} - {cand.artist}</span>
-              <span class="cand-meta tabular">
-                {cand.provider.toUpperCase()}
-                {cand.wordSynced ? ' / WORD' : cand.synced ? ' / SYNC' : ''}
-                {cand.duration > 0 ? ` / ${formatTime(cand.duration)}` : ''}
+            <span class="cand-top">
+              <span class="truncate">{cand.title} - {cand.artist}</span>
+              <span class="cand-src tabular">
+                {cand.provider.toUpperCase()}{cand.wordSynced ? ' / WORD' : cand.synced ? ' / SYNC' : ''}{cand.duration > 0 ? ` / ${formatTime(cand.duration)}` : ''}
               </span>
-            </div>
-            <div class="cand-prev truncate">{cand.preview}</div>
+            </span>
+            <span class="cand-prev truncate">{cand.preview}</span>
           </button>
         {/each}
       {/if}
@@ -216,158 +171,199 @@
 
   <div
     bind:this={scrollerEl}
-    class="lines scroll-thin"
+    class="lines-scroll"
     role="region"
     aria-label="Synchronized lyrics"
-    style="--lrc-size: {expanded ? Math.max(24, settings.lyricsFontSize + 5) : settings.lyricsFontSize}px;"
+    style="--lrc-size: {expanded ? 'clamp(24px, 2.3vw, 38px)' : `${settings.lyricsFontSize}px`};"
     onwheel={onUserWheel}
     ontouchstart={onUserWheel}
   >
     {#if !track}
-      <div class="empty-box">Play a track to display synchronized lyrics.</div>
+      <div class="empty-msg">Play a song to follow along with lyrics.</div>
     {:else if lyricsStore.loading}
-      <div class="empty-box">Loading lyrics...</div>
+      <div class="empty-msg">Looking for lyrics...</div>
     {:else if lyricsStore.lines.length === 0}
-      <div class="empty-box">
-        <p>No lyrics available for this track.</p>
-        <div class="empty-actions">
-          <button type="button" class="btn" onclick={openOnlineSearch}>Search Online</button>
-          <button type="button" class="btn" onclick={pickLocalLyrics}>Load LRC File</button>
-        </div>
+      <div class="empty-msg">
+        <p>No lyrics available for this song.</p>
+        <button type="button" class="search-pill" onclick={toggleVersions}>Search Online</button>
       </div>
     {:else}
       <div class="spacer"></div>
+
+      {#if gapStart && active.lineIndex < 0}
+        {@const pct = Math.min(1, Math.max(0, (player.smoothPosition - gapStart.start) / Math.max(0.1, gapStart.end - gapStart.start)))}
+        <div class="dots" aria-label="Instrumental">
+          {#each [0, 1, 2] as d (d)}
+            <i style:opacity={0.3 + 0.7 * Math.min(1, Math.max(0, pct * 3 - d))}></i>
+          {/each}
+        </div>
+      {/if}
+
       {#each lyricsStore.lines as line, idx (idx)}
         {@const isCurrent = lyricsStore.synced && idx === active.lineIndex}
-        {@const isPast = lyricsStore.synced && idx < active.lineIndex}
-        <button
-          type="button"
-          data-line={idx}
-          class="line-btn"
-          class:current={isCurrent}
-          class:past={isPast}
-          class:bg-vocal={line.bg}
-          disabled={!lyricsStore.synced}
-          onclick={() => lyricsStore.synced && player.seek(line.time - lyricsStore.trackOffset)}
-        >
-          {#if isCurrent && line.words.length > 0}
-            <span class="line-text">
-              {#each line.words as word, wIdx (wIdx)}
-                {@const wp =
-                  wIdx < active.wordIndex
-                    ? 100
-                    : wIdx === active.wordIndex
-                      ? Math.round(active.wordProgress * 100)
-                      : 0}
-                <span
-                  class="word-karaoke"
-                  style="background-image: linear-gradient(90deg, var(--accent) {wp}%, var(--text-2) {wp}%);"
-                >{word.text}</span>
+        {@const dist = Math.min(4, Math.abs(idx - Math.max(0, active.lineIndex)))}
+        {#if learning && learnStore.pieces?.[idx]}
+          <div
+            data-line={idx}
+            class="line"
+            class:on={isCurrent}
+            class:past={lyricsStore.synced && idx < active.lineIndex}
+            style:--d={0}
+          >
+            <span class="learn-words" lang={learnStore.japanese ? 'ja' : undefined}>
+              {#each learnStore.pieces[idx] as p, j (j)}
+                {#if p.tap}
+                  <button
+                    type="button"
+                    class="wd"
+                    class:sel={learnStore.card.open && learnStore.card.line === idx && learnStore.card.piece === j}
+                    onclick={() => learnStore.openWord(idx, j)}
+                  >
+                    {#if p.reading}
+                      {#each buildFurigana(p.text, p.reading) as seg, k (k)}
+                        {#if seg.rt}
+                          <ruby>{seg.text}<rt>{seg.rt}</rt></ruby>
+                        {:else}
+                          {seg.text}
+                        {/if}
+                      {/each}
+                    {:else}
+                      {p.text}
+                    {/if}
+                  </button>
+                {:else}
+                  {p.text}
+                {/if}
               {/each}
             </span>
-          {:else}
-            <span class="line-text">{line.text}</span>
-          {/if}
+            {#if learnStore.romajiLines?.[idx]}
+              <span class="ro">{learnStore.romajiLines[idx]}</span>
+            {/if}
+            {#if translateStore.lines?.[idx]}
+              <span class="tr">{translateStore.lines[idx]}</span>
+            {/if}
+          </div>
+        {:else}
+          <button
+            type="button"
+            data-line={idx}
+            class="line"
+            class:on={isCurrent}
+            class:past={lyricsStore.synced && idx < active.lineIndex}
+            class:bg-vocal={line.bg}
+            style:--d={manualScrolling || !lyricsStore.synced ? 0 : dist}
+            disabled={!lyricsStore.synced}
+            onclick={() => lyricsStore.synced && player.seek(line.time - lyricsStore.trackOffset)}
+          >
+            <span class="line-txt">
+              {#if isCurrent && line.words.length > 0}
+                {#each line.words as word, wIdx (wIdx)}
+                  {@const wp =
+                    wIdx < active.wordIndex
+                      ? 100
+                      : wIdx === active.wordIndex
+                        ? Math.round(active.wordProgress * 100)
+                        : 0}
+                  <span class="word-sweep" style:--p="{wp}%">{word.text}</span>
+                {/each}
+              {:else}
+                {line.text}
+              {/if}
+            </span>
 
-          {#if settings.romanizeLyrics && lyricsStore.romanizedLines[idx]}
-            <span class="romaji">{lyricsStore.romanizedLines[idx]}</span>
+            {#if translateStore.lines?.[idx]}
+              <span class="tr">{translateStore.lines[idx]}</span>
+            {:else if settings.romanizeLyrics && lyricsStore.romanizedLines[idx] && !learnStore.japanese}
+              <span class="ro">{lyricsStore.romanizedLines[idx]}</span>
+            {/if}
+          </button>
+
+          {#if isCurrent && gapStart}
+            {@const pct = Math.min(1, Math.max(0, (player.smoothPosition - gapStart.start) / Math.max(0.1, gapStart.end - gapStart.start)))}
+            <div class="dots" aria-label="Instrumental">
+              {#each [0, 1, 2] as d (d)}
+                <i style:opacity={0.3 + 0.7 * Math.min(1, Math.max(0, pct * 3 - d))}></i>
+              {/each}
+            </div>
           {/if}
-        </button>
+        {/if}
       {/each}
       <div class="spacer"></div>
     {/if}
   </div>
 
-  {#if manualScrolling && lyricsStore.synced}
-    <button type="button" class="recenter-btn" onclick={recenter}>Recenter</button>
-  {/if}
+  <WordCard />
 </div>
 
 <style>
-  .lyrics-shell {
+  .lyrics-pane {
     position: relative;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
+    overflow: hidden;
   }
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .tool-chip {
-    height: 26px;
-    padding: 0 9px;
-    border-radius: var(--r-sm);
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-2);
-    font-size: 11.5px;
-    font-weight: 600;
-  }
-  .tool-chip.active {
-    background: var(--accent-soft);
-    color: var(--accent);
-    border-color: transparent;
-  }
-  .offset-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .step-btn {
-    height: 26px;
-    padding: 0 8px;
-    border-radius: var(--r-sm);
-    border: 1px solid var(--border);
-    background: var(--surface-2);
-    color: var(--text);
-    font-size: 11.5px;
-    font-weight: 600;
-  }
-  .step-btn:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-strong);
-  }
-  .offset-input {
-    width: 56px;
-    height: 26px;
-    text-align: center;
-    border-radius: var(--r-sm);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .offset-input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .tool-right {
-    margin-left: auto;
+  .floating-tools {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
     display: flex;
     align-items: center;
     gap: 2px;
   }
-  .btn-icon.small {
-    width: 28px;
-    height: 28px;
+  .icon-tool {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-2);
+    opacity: 0.72;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 140ms ease, opacity 140ms ease, color 140ms ease;
   }
-  .cand-drawer {
-    max-height: 220px;
+  .expanded .icon-tool {
+    color: rgba(255, 255, 255, 0.74);
+  }
+  .icon-tool:hover {
+    opacity: 1;
+    background: rgba(130, 140, 160, 0.18);
+  }
+  .icon-tool.on {
+    opacity: 1;
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .expanded .icon-tool.on {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .icon-tool.busy {
+    animation: pulseOpacity 1.2s ease-in-out infinite;
+  }
+  @keyframes pulseOpacity {
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .cand-overlay {
+    position: absolute;
+    top: 44px;
+    left: 10px;
+    right: 10px;
+    max-height: 260px;
     overflow-y: auto;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-elev);
-    padding: 8px 10px;
+    z-index: 20;
+    background: rgba(24, 26, 34, 0.92);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex-shrink: 0;
+    color: #fff;
   }
   .cand-head {
     display: flex;
@@ -375,142 +371,194 @@
     align-items: center;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-2);
   }
-  .cand-empty {
-    font-size: 12px;
-    color: var(--text-3);
-    padding: 8px 2px;
+  .cand-msg {
+    font-size: 12.5px;
+    opacity: 0.7;
+    padding: 8px 4px;
   }
   .cand-row {
-    border: 1px solid var(--border);
-    background: var(--surface);
-    border-radius: var(--r-sm);
-    padding: 7px 9px;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: #fff;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
   }
   .cand-row:hover {
-    border-color: var(--accent);
-    background: var(--surface-2);
+    background: rgba(255, 255, 255, 0.16);
   }
   .cand-top {
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
-    color: var(--text);
   }
-  .cand-meta {
-    font-size: 10.5px;
+  .cand-src {
+    font-size: 11px;
     color: var(--accent);
     flex-shrink: 0;
   }
   .cand-prev {
-    font-size: 11px;
-    color: var(--text-3);
+    font-size: 11.5px;
+    opacity: 0.65;
   }
-  .lines {
-    flex: 1;
+  .lines-scroll {
+    height: 100%;
     overflow-y: auto;
-    padding: 0 18px;
+    scrollbar-width: none;
+    padding: 0 14px;
+    mask-image: linear-gradient(transparent, #000 12%, #000 82%, transparent);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
+  }
+  .lines-scroll::-webkit-scrollbar {
+    display: none;
   }
   .spacer {
     height: 36%;
     flex-shrink: 0;
   }
-  .line-btn {
+  .line {
+    display: block;
+    width: 100%;
     border: none;
     background: transparent;
     text-align: left;
-    padding: 6px 8px;
-    border-radius: var(--r-md);
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    transition: transform 240ms var(--ease), color 200ms var(--ease), opacity 200ms var(--ease);
+    padding: 9px 12px;
+    border-radius: 12px;
+    color: var(--text-3);
+    filter: blur(calc(var(--d, 0) * 0.55px));
+    transform: scale(0.97);
     transform-origin: left center;
+    transition: color 300ms ease, filter 300ms ease, transform 380ms cubic-bezier(0.25, 1.2, 0.4, 1);
   }
-  .line-btn:disabled {
+  .expanded .line {
+    color: rgba(255, 255, 255, 0.36);
+  }
+  .manual .line {
+    filter: none;
+  }
+  .line:disabled {
     cursor: default;
-    opacity: 0.92;
   }
-  .line-btn:hover:not(:disabled) {
-    background: var(--surface-2);
+  .line:hover:not(:disabled) {
+    filter: none;
+    background: rgba(255, 255, 255, 0.06);
   }
-  .line-text {
+  .line.on {
+    color: var(--text);
+    filter: none;
+    transform: none;
+  }
+  .expanded .line.on {
+    color: #fff;
+  }
+  .line-txt {
     font-size: var(--lrc-size, 22px);
     font-weight: 700;
-    line-height: 1.32;
-    color: var(--text-3);
-    transition: color 220ms var(--ease);
+    line-height: 1.26;
+    letter-spacing: -0.02em;
   }
-  .line-btn.bg-vocal .line-text {
-    font-size: calc(var(--lrc-size, 22px) * 0.82);
+  .line.bg-vocal .line-txt {
+    font-size: calc(var(--lrc-size, 22px) * 0.8);
     font-style: italic;
   }
-  .line-btn.past .line-text {
-    color: var(--text-2);
-    opacity: 0.6;
-  }
-  .line-btn.current {
-    transform: scale(1.03);
-  }
-  .line-btn.current .line-text {
-    color: var(--text);
-  }
-  .word-karaoke {
+  .word-sweep {
+    background: linear-gradient(90deg, var(--accent) var(--p), rgba(160, 167, 184, 0.45) var(--p));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     white-space: pre-wrap;
   }
-  .romaji {
+  .expanded .word-sweep {
+    background: linear-gradient(90deg, #fff var(--p), rgba(255, 255, 255, 0.36) var(--p));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tr {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.56em;
+    font-weight: 600;
+    line-height: 1.32;
+    opacity: 0.72;
+  }
+  .ro {
+    display: block;
+    margin-top: 3px;
     font-size: 12.5px;
     font-weight: 500;
-    color: var(--text-2);
-    opacity: 0.78;
+    opacity: 0.72;
   }
-  .line-btn.current .romaji {
-    color: var(--accent);
-    opacity: 1;
+  .learning .line {
+    filter: none;
+    cursor: default;
   }
-  .empty-box {
+  .learn-words {
+    display: block;
+    font-size: calc(var(--lrc-size, 22px) * 0.86);
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .wd {
+    font: inherit;
+    color: inherit;
+    border: none;
+    background: transparent;
+    padding: 0 3px;
+    border-radius: 6px;
+  }
+  .wd:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+  .wd.sel {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+  }
+  rt {
+    font-size: 0.44em;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+  .dots {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+    color: var(--text);
+  }
+  .expanded .dots i {
+    color: #fff;
+  }
+  .empty-msg {
     margin: auto;
     text-align: center;
-    color: var(--text-3);
+    opacity: 0.65;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    padding: 24px;
   }
-  .empty-actions {
-    display: flex;
-    gap: 8px;
-  }
-  .recenter-btn {
-    position: absolute;
-    bottom: 14px;
-    right: 16px;
-    height: 28px;
-    padding: 0 12px;
+  .search-pill {
+    border: none;
     border-radius: 999px;
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 12px;
+    height: 30px;
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.16);
+    color: inherit;
+    font-size: 12.5px;
     font-weight: 600;
-    box-shadow: var(--shadow-sm);
-  }
-  .recenter-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
   }
 </style>

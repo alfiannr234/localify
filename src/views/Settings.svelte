@@ -1,6 +1,7 @@
 <script lang="ts">
   import { open } from '@tauri-apps/plugin-dialog';
   import Icon from '../components/Icon.svelte';
+  import LyricsSources from '../components/LyricsSources.svelte';
   import Toggle from '../components/Toggle.svelte';
   import { api } from '../lib/api';
   import { applyAppearance } from '../lib/appearance.svelte';
@@ -10,6 +11,8 @@
   import { player } from '../lib/player.svelte';
   import { DEFAULT_DISCORD_CLIENT_ID, settings } from '../lib/settings.svelte';
   import { ACCENTS, THEMES } from '../lib/themes';
+  import { TRANSLATE_LANGUAGES } from '../lib/translate';
+  import { triggerTranslateSync } from '../lib/translate.svelte';
   import type { AudioDeviceInfo } from '../lib/types';
 
   let devices = $state<AudioDeviceInfo[]>([]);
@@ -18,9 +21,36 @@
   let offsetFocused = $state(false);
   let searchEl: HTMLInputElement | undefined = $state();
 
+  let subAccount = $state<{ server: string; user: string } | null>(null);
+  let subServer = $state('');
+  let subUser = $state('');
+  let subPass = $state('');
+  let subBusy = $state(false);
+  let subErr = $state('');
+
   $effect(() => {
     void api.audioDevices().then((d) => (devices = d));
+    void api.subsonicStatus().then((s) => (subAccount = s));
   });
+
+  async function connectSubsonic(e: Event): Promise<void> {
+    e.preventDefault();
+    subBusy = true;
+    subErr = '';
+    try {
+      subAccount = await api.subsonicConnect(subServer, subUser, subPass);
+      subPass = '';
+    } catch (err) {
+      subErr = err instanceof Error ? err.message : String(err);
+    } finally {
+      subBusy = false;
+    }
+  }
+
+  async function logoutSubsonic(): Promise<void> {
+    await api.subsonicLogout();
+    subAccount = null;
+  }
 
   $effect(() => {
     if (!offsetFocused) {
@@ -189,7 +219,7 @@
     </section>
   {/if}
 
-  {#if matches('sinkronisasi lirik timing offset font size romaji auto fetch lyrics')}
+  {#if matches('sinkronisasi lirik timing offset font size romaji translate language word timing lrclib netease kugou subsonic')}
     <section class="card-sec">
       <h2>Lyrics</h2>
 
@@ -228,17 +258,61 @@
 
       <div class="row">
         <div class="row-info">
-          <div class="row-title">Auto-fetch online lyrics</div>
-          <div class="row-desc">Search LRCLIB, NetEase, and Kugou automatically when local lyrics are missing</div>
+          <div class="row-title">Prefer word-timed lyrics</div>
+          <div class="row-desc">Keep line-synced hits as fallback while checking remaining sources for word timing</div>
         </div>
         <Toggle
-          checked={settings.autoFetchLyrics}
-          label="Auto-fetch online lyrics"
+          checked={settings.preferWordTiming}
+          label="Prefer word-timed lyrics"
           onChange={(v) => {
-            settings.autoFetchLyrics = v;
-            settings.save('auto_fetch_lyrics', String(v));
+            settings.preferWordTiming = v;
+            settings.save('prefer_word_timing', String(v));
           }}
         />
+      </div>
+
+      <div class="sources-block">
+        <div class="row-title">Lyrics provider priority</div>
+        <div class="row-desc">Drag rows or use arrow keys to reorder how lyrics are fetched</div>
+        <LyricsSources />
+      </div>
+
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Translate lyrics</div>
+          <div class="row-desc">Display translated lines underneath original lyrics</div>
+        </div>
+        <Toggle
+          checked={settings.translateLyrics}
+          label="Translate lyrics"
+          onChange={(v) => {
+            settings.translateLyrics = v;
+            settings.save('translate_lyrics', String(v));
+            triggerTranslateSync();
+          }}
+        />
+      </div>
+
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Translation language</div>
+          <div class="row-desc">Target language for lyrics translation and word lookups</div>
+        </div>
+        <select
+          class="input"
+          aria-label="Translation language"
+          value={settings.lyricsLanguage}
+          onchange={(e) => {
+            settings.lyricsLanguage = (e.currentTarget as HTMLSelectElement).value;
+            settings.save('lyrics_language', settings.lyricsLanguage);
+            triggerTranslateSync();
+          }}
+        >
+          <option value="">System Language</option>
+          {#each TRANSLATE_LANGUAGES as [code, label] (code)}
+            <option value={code}>{label}</option>
+          {/each}
+        </select>
       </div>
 
       <div class="row">
@@ -274,6 +348,35 @@
           }}
         />
       </div>
+    </section>
+  {/if}
+
+  {#if matches('navidrome subsonic server credentials')}
+    <section class="card-sec">
+      <h2>Navidrome / Subsonic Server</h2>
+      {#if subAccount}
+        <div class="row">
+          <div class="row-info">
+            <div class="row-title">{subAccount.server}</div>
+            <div class="row-desc">Signed in as {subAccount.user} (lyrics lookups enabled)</div>
+          </div>
+          <button type="button" class="btn" onclick={logoutSubsonic}>Sign out</button>
+        </div>
+      {:else}
+        <form class="sub-form" onsubmit={connectSubsonic}>
+          <div class="sub-grid">
+            <input class="input" placeholder="Server URL (e.g. http://192.168.1.5:4533)" bind:value={subServer} />
+            <input class="input" placeholder="Username" bind:value={subUser} />
+            <input class="input" type="password" placeholder="Password" bind:value={subPass} />
+            <button type="submit" class="btn btn-primary" disabled={subBusy}>
+              {subBusy ? 'Connecting...' : 'Connect'}
+            </button>
+          </div>
+          {#if subErr}
+            <div class="sub-err" role="alert">{subErr}</div>
+          {/if}
+        </form>
+      {/if}
     </section>
   {/if}
 
@@ -485,5 +588,26 @@
     width: 185px;
     font-family: var(--font-mono);
     font-size: 12px;
+  }
+  .sources-block {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sub-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sub-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr auto;
+    gap: 8px;
+  }
+  .sub-err {
+    font-size: 12.5px;
+    color: var(--danger);
   }
 </style>

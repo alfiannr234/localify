@@ -8,15 +8,15 @@ class EqStore {
 
   async load(): Promise<void> {
     try {
-      const kv = await api.getAllKv();
-      if (kv.eq_config) {
-        const parsed = JSON.parse(kv.eq_config) as EqConfig;
+      const [eqRaw, presetRaw] = await Promise.all([api.getKv('eq_config'), api.getKv('eq_preset')]);
+      if (eqRaw) {
+        const parsed = JSON.parse(eqRaw) as EqConfig;
         if (Array.isArray(parsed.gainsDb) && parsed.gainsDb.length === 10) {
           this.config = parsed;
           void api.audioSetEq(parsed);
         }
       }
-      if (kv.eq_preset) this.activePresetId = kv.eq_preset;
+      if (presetRaw) this.activePresetId = presetRaw;
     } catch {
       // ignore corrupt eq config
     }

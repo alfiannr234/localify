@@ -42,11 +42,11 @@ class TranslateStore {
     this.busy = true;
     try {
       const kvKey = `tr2:${tl}:${fnvHashHex(uniq.join('\n'))}`;
-      const allKv = await api.getAllKv().catch(() => ({} as Record<string, string>));
+      const rawCached = await api.getKv(kvKey).catch(() => null);
       let cached: { source: string; dict: Record<string, string> } | null = null;
-      if (allKv[kvKey]) {
+      if (rawCached) {
         try {
-          cached = JSON.parse(allKv[kvKey]);
+          cached = JSON.parse(rawCached);
         } catch {
           cached = null;
         }

@@ -677,6 +677,28 @@ impl Db {
         }
         Ok(out)
     }
+
+    pub fn get_settings_kv(&self) -> Result<HashMap<String, String>, String> {
+        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT key, value FROM kv
+                 WHERE key NOT LIKE 'tr:%'
+                   AND key NOT LIKE 'tr2:%'
+                   AND key NOT LIKE 'quran:%'
+                   AND key NOT IN ('vocab_items', 'quran_anchors')",
+            )
+            .map_err(|e| e.to_string())?;
+        let rows = stmt
+            .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))
+            .map_err(|e| e.to_string())?;
+        let mut out = HashMap::new();
+        for r in rows {
+            let (k, v) = r.map_err(|e| e.to_string())?;
+            out.insert(k, v);
+        }
+        Ok(out)
+    }
 }
 
 fn map_track_row(r: &rusqlite::Row) -> rusqlite::Result<Track> {

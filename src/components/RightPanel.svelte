@@ -8,7 +8,7 @@
   import QuranView from './QuranView.svelte';
 
   let track = $derived(player.currentTrack);
-  let bgArt = $derived(track ? artUrl(track.artHash, false) : null);
+  let bgArt = $derived(track ? artUrl(track.artHash, true) : null);
 </script>
 
 {#if player.rightPanel}
@@ -83,7 +83,7 @@
   }
   .backdrop {
     position: absolute;
-    inset: -18%;
+    inset: -8%;
     pointer-events: none;
     z-index: 0;
   }
@@ -91,8 +91,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: blur(56px) saturate(1.5) brightness(0.48);
-    transform: scale(1.22);
+    filter: blur(38px) saturate(1.45) brightness(0.48);
+    transform: scale(1.14);
   }
   .backdrop::after {
     content: '';

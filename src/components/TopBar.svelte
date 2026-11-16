@@ -106,9 +106,7 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    background: var(--surface-glass);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: var(--bg-elev);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     z-index: 20;

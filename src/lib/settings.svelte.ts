@@ -38,7 +38,7 @@ class SettingsStore {
 
   async load(): Promise<void> {
     try {
-      const kv = await api.getAllKv();
+      const kv = await api.getSettingsKv();
       if (kv.theme) this.theme = kv.theme === 'dark' ? 'obsidian' : kv.theme;
       if (kv.accent) this.accent = kv.accent;
       if (kv.match_artwork) this.matchArtwork = kv.match_artwork === 'true';

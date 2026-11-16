@@ -281,9 +281,7 @@
     grid-template-columns: minmax(220px, 1fr) minmax(300px, 1.5fr) minmax(240px, 1fr);
     align-items: center;
     gap: 16px;
-    background: var(--surface-glass);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    background: var(--bg-elev);
     border-top: 1px solid var(--border);
     flex-shrink: 0;
     z-index: 30;

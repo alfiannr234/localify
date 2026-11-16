@@ -11,7 +11,7 @@
   import Slider from './Slider.svelte';
 
   let track = $derived(player.currentTrack);
-  let bgArt = $derived(track ? artUrl(track.artHash, false) : null);
+  let bgArt = $derived(track ? artUrl(track.artHash, true) : null);
   let scrubbing = $state(false);
   let scrubVal = $state(0);
   let displayPos = $derived(scrubbing ? scrubVal : player.smoothPosition);
@@ -223,15 +223,15 @@
   }
   .backdrop {
     position: absolute;
-    inset: -10%;
+    inset: -6%;
     pointer-events: none;
   }
   .backdrop img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: blur(72px) saturate(1.6) brightness(0.58);
-    transform: scale(1.28);
+    filter: blur(44px) saturate(1.5) brightness(0.56);
+    transform: scale(1.16);
   }
   .backdrop::after {
     content: '';

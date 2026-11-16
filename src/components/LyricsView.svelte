@@ -270,7 +270,8 @@
 
         {#each lyricsStore.lines as line, idx (idx)}
           {@const isCurrent = lyricsStore.synced && idx === active.lineIndex}
-          {@const dist = Math.min(4, Math.abs(idx - Math.max(0, active.lineIndex)))}
+          {@const rawDist = Math.abs(idx - Math.max(0, active.lineIndex))}
+          {@const dist = rawDist <= 3 ? rawDist : 0}
           {#if learning && learnStore.pieces?.[idx]}
             <div
               data-line={idx}

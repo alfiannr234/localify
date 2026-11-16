@@ -33,6 +33,8 @@ class PlayerStore {
   private anchorPos = 0;
   private anchorPerf = 0;
   private rafId: number | null = null;
+  private lastClockCommit = 0;
+  private onVisibilityChange: (() => void) | null = null;
   private lastDiscordPush = 0;
   private savedWinSize: { width: number; height: number } | null = null;
   private sleepInterval: ReturnType<typeof setInterval> | null = null;
@@ -64,6 +66,9 @@ class PlayerStore {
       this.anchorPerf = performance.now();
       if (!t.playing) {
         this.smoothPosition = t.position;
+        this.stopClockLoop();
+      } else {
+        this.ensureClockRunning();
       }
       const now = Date.now();
       if (t.playing && now - this.lastDiscordPush > 15000) {
@@ -102,19 +107,44 @@ class PlayerStore {
       void this.seek(ev.payload);
     });
 
-    this.startClockLoop();
+    this.onVisibilityChange = () => {
+      if (document.hidden) {
+        this.stopClockLoop();
+      } else if (this.playing) {
+        this.ensureClockRunning();
+      }
+    };
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
   }
 
-  private startClockLoop(): void {
-    const tick = () => {
-      if (this.playing && this.anchorPerf > 0) {
-        const dt = ((performance.now() - this.anchorPerf) / 1000) * this.speed;
+  private ensureClockRunning(): void {
+    if (this.rafId !== null || !this.playing || (typeof document !== 'undefined' && document.hidden)) {
+      return;
+    }
+    const tick = (nowPerf: number) => {
+      if (!this.playing || (typeof document !== 'undefined' && document.hidden)) {
+        this.rafId = null;
+        return;
+      }
+      const needsKaraoke = this.nowPlayingOpen || this.rightPanel === 'lyrics';
+      const minIntervalMs = needsKaraoke ? 45 : 220;
+      if (this.anchorPerf > 0 && nowPerf - this.lastClockCommit >= minIntervalMs) {
+        this.lastClockCommit = nowPerf;
+        const dt = ((nowPerf - this.anchorPerf) / 1000) * this.speed;
         const maxDur = this.duration > 0 ? this.duration : Number.MAX_SAFE_INTEGER;
         this.smoothPosition = Math.min(maxDur, Math.max(0, this.anchorPos + dt));
       }
       this.rafId = requestAnimationFrame(tick);
     };
+    this.lastClockCommit = 0;
     this.rafId = requestAnimationFrame(tick);
+  }
+
+  private stopClockLoop(): void {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
   }
 
   async playTrack(track: Track, contextTracks?: Track[]): Promise<void> {
@@ -202,6 +232,7 @@ class PlayerStore {
       await api.audioPlay(path, 0);
       this.playing = true;
       this.anchorPerf = performance.now();
+      this.ensureClockRunning();
       if (track) {
         void library.markPlayed(track.path);
         void quranStore.loadTrack(track);
@@ -213,6 +244,7 @@ class PlayerStore {
       this.syncIntegrations();
     } catch (e) {
       this.playing = false;
+      this.stopClockLoop();
       this.error = e instanceof Error ? e.message : String(e);
     }
   }
@@ -229,6 +261,8 @@ class PlayerStore {
     this.playing = nextPlaying;
     this.anchorPos = this.smoothPosition;
     this.anchorPerf = performance.now();
+    if (nextPlaying) this.ensureClockRunning();
+    else this.stopClockLoop();
     this.syncIntegrations();
   }
 
@@ -245,6 +279,7 @@ class PlayerStore {
   async stop(): Promise<void> {
     await api.audioStop();
     this.playing = false;
+    this.stopClockLoop();
     this.position = 0;
     this.smoothPosition = 0;
     void api.discordClear();
@@ -403,8 +438,12 @@ class PlayerStore {
   }
 
   destroy(): void {
-    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+    this.stopClockLoop();
     if (this.sleepInterval) clearInterval(this.sleepInterval);
+    if (this.onVisibilityChange) {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+      this.onVisibilityChange = null;
+    }
   }
 }
 

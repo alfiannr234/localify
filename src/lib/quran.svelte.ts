@@ -86,20 +86,28 @@ class QuranStore {
 
   private async cached<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
     if (this.memCache.has(key)) return this.memCache.get(key) as T;
-    const all = await api.getAllKv().catch(() => ({} as Record<string, string>));
-    if (all[key]) {
+    const raw = await api.getKv(key).catch(() => null);
+    if (raw) {
       try {
-        const val = JSON.parse(all[key]) as T;
-        this.memCache.set(key, val);
+        const val = JSON.parse(raw) as T;
+        this.rememberCache(key, val);
         return val;
       } catch {
         // ignore corrupt cache
       }
     }
     const fresh = await fetcher();
-    this.memCache.set(key, fresh);
+    this.rememberCache(key, fresh);
     void api.setKv(key, JSON.stringify(fresh));
     return fresh;
+  }
+
+  private rememberCache(key: string, val: unknown): void {
+    if (this.memCache.size >= 4) {
+      const oldest = this.memCache.keys().next().value;
+      if (oldest !== undefined) this.memCache.delete(oldest);
+    }
+    this.memCache.set(key, val);
   }
 
   private buildAyah(
@@ -212,8 +220,12 @@ class QuranStore {
     this.fixing = false;
     this.anchors = {};
     this.lastPauses = null;
+    this.data.clear();
 
-    if (!t) return;
+    if (!t) {
+      this.memCache.clear();
+      return;
+    }
     const rec = detectRecitation(t);
     if (!rec) return;
 
@@ -241,10 +253,10 @@ class QuranStore {
       }
       this.units = units;
 
-      const allKv = await api.getAllKv().catch(() => ({} as Record<string, string>));
-      if (allKv.quran_anchors) {
+      const rawAnchors = await api.getKv('quran_anchors').catch(() => null);
+      if (rawAnchors) {
         try {
-          const anchorsMap = JSON.parse(allKv.quran_anchors) as Record<string, Record<number, number>>;
+          const anchorsMap = JSON.parse(rawAnchors) as Record<string, Record<number, number>>;
           this.anchors = anchorsMap[t.path.toLowerCase()] ?? {};
         } catch {
           this.anchors = {};
@@ -329,11 +341,11 @@ class QuranStore {
   }
 
   private async saveAnchors(): Promise<void> {
-    const allKv = await api.getAllKv().catch(() => ({} as Record<string, string>));
+    const rawAnchors = await api.getKv('quran_anchors').catch(() => null);
     let map: Record<string, Record<number, number>> = {};
-    if (allKv.quran_anchors) {
+    if (rawAnchors) {
       try {
-        map = JSON.parse(allKv.quran_anchors);
+        map = JSON.parse(rawAnchors);
       } catch {
         map = {};
       }

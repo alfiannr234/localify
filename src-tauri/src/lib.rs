@@ -401,6 +401,11 @@ fn get_all_kv(state: State<AppState>) -> Result<HashMap<String, String>, String>
     state.db.get_all_kv()
 }
 
+#[tauri::command]
+fn get_settings_kv(state: State<AppState>) -> Result<HashMap<String, String>, String> {
+    state.db.get_settings_kv()
+}
+
 #[allow(clippy::too_many_arguments)]
 #[tauri::command]
 fn discord_update(
@@ -690,6 +695,7 @@ pub fn run() {
             get_kv,
             set_kv,
             get_all_kv,
+            get_settings_kv,
             discord_update,
             discord_clear,
             smtc_update,

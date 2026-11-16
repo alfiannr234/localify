@@ -87,7 +87,9 @@ export const api = {
     invoke<LyricsResult>('assign_lyrics_file', { trackPath, lyricsFile }),
   clearCachedLyrics: (trackPath: string) => invoke<void>('clear_cached_lyrics', { trackPath }),
 
+  getKv: (key: string) => invoke<string | null>('get_kv', { key }),
   getAllKv: () => invoke<Record<string, string>>('get_all_kv'),
+  getSettingsKv: () => invoke<Record<string, string>>('get_settings_kv'),
   setKv: (key: string, value: string) => invoke<void>('set_kv', { key, value }),
 
   discordUpdate: (params: {

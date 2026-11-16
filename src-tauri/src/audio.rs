@@ -456,7 +456,14 @@ fn run_audio_thread(
     let mut last_tick = std::time::Instant::now();
 
     loop {
-        while let Ok(cmd) = rx.try_recv() {
+        let is_playing_now = clock.playing.load(Ordering::Relaxed);
+        let wait = if is_playing_now {
+            Duration::from_millis(16)
+        } else {
+            Duration::from_millis(150)
+        };
+        let first_cmd = rx.recv_timeout(wait).ok();
+        for cmd in first_cmd.into_iter().chain(rx.try_iter()) {
             match cmd {
                 AudioCmd::Play {
                     path,
@@ -534,6 +541,7 @@ fn run_audio_thread(
                             s.play();
                             clock.playing.store(true, Ordering::Relaxed);
                         }
+                        let _ = app.emit("audio-tick", clock.snapshot());
                     }
                 }
                 AudioCmd::Seek { secs } => {
@@ -655,14 +663,12 @@ fn run_audio_thread(
             }
         }
 
-        if last_tick.elapsed() >= Duration::from_millis(45) {
+        if last_tick.elapsed() >= Duration::from_millis(200) {
             if clock.playing.load(Ordering::Relaxed) {
                 let _ = app.emit("audio-tick", clock.snapshot());
             }
             last_tick = std::time::Instant::now();
         }
-
-        std::thread::sleep(Duration::from_millis(12));
     }
 }
 

@@ -54,9 +54,9 @@ class LearnStore {
 
   async loadVocab(): Promise<void> {
     try {
-      const all = await api.getAllKv();
-      if (all.vocab_items) {
-        const parsed = JSON.parse(all.vocab_items) as VocabItem[];
+      const raw = await api.getKv('vocab_items');
+      if (raw) {
+        const parsed = JSON.parse(raw) as VocabItem[];
         if (Array.isArray(parsed)) this.vocab = parsed;
       }
     } catch {
@@ -211,6 +211,10 @@ class LearnStore {
         meanings: sense?.english_definitions?.slice(0, 5) ?? [],
         pos: sense?.parts_of_speech?.[0]?.toLowerCase() ?? 'word',
       };
+      if (this.jpCache.size >= 120) {
+        const oldest = this.jpCache.keys().next().value;
+        if (oldest !== undefined) this.jpCache.delete(oldest);
+      }
       this.jpCache.set(word, item);
       return item;
     } catch {

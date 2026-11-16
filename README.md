@@ -5,12 +5,12 @@
 <h1 align="center">Localify</h1>
 
 <p align="center">
-  <strong>Desktop local audio player featuring synchronized lyrics, Mini Player mode, and Discord Rich Presence.</strong>
+  <strong>Lightweight desktop music player built with TypeScript, Svelte 5, Tauri 2, and Rust.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 17+" />
-  <img src="https://img.shields.io/badge/JavaFX-21-FF6F00?style=for-the-badge&logo=java&logoColor=white" alt="JavaFX 21" />
+  <img src="https://img.shields.io/badge/Rust-Pure%20Audio%20%2B%20Tauri%202-F5823E?style=for-the-badge&logo=rust&logoColor=white" alt="Rust + Tauri 2" />
+  <img src="https://img.shields.io/badge/TypeScript-Svelte%205-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript + Svelte 5" />
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/Discord-Rich%20Presence-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord RPC" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
@@ -20,33 +20,17 @@
 
 ## Overview
 
-**Localify** is a local desktop music player built with **JavaFX 21** and a clean interface inspired by modern streaming players. It scans local audio libraries, displays time-synced lyrics, updates your Discord Rich Presence status in real time, and switches seamlessly between full library view and a compact floating Mini Player.
-
----
-
-## Screenshot
-
-<p align="center">
-  <img width="1258" height="688" alt="Screenshot" src="https://github.com/user-attachments/assets/c777ecaf-7ae2-4e12-adf6-e433d77e2cf1" width="100%"/>
-
-</p>
+**Localify** is a fast, compact local music player rewritten from the ground up with **Tauri 2**, **Svelte 5**, **TypeScript**, and a **pure Rust** backend. It decodes audio directly in native Rust with zero external media runtime dependencies (~10-15 MB binary), keeps lyrics tightly synced to the hardware sample clock, and migrates your existing Localify v1 offsets and `.m3u8` playlists automatically.
 
 ---
 
 ## Key Features
 
-- **Automatic Library Scanning**: Scans `.mp3`, `.flac`, `.wav`, and `.m4a` audio files from the user's `Music` folder or a custom directory, extracting ID3 tags and embedded cover artwork with JAudioTagger.
-- **Synchronized Lyrics (.lrc)**:
-  - Smooth auto-scrolling lyrics with active line highlighting.
-  - Automatic transliteration to Romaji for Japanese and Asian tracks.
-  - On-the-fly online `.lrc` lookup via LRCLIB when no local lyrics file is found.
-  - Manual `.lrc` file assignment directly from each track's right-click context menu.
-- **Discord Rich Presence (RPC)**: Displays current track title, artist, album, and live playback timestamps on your Discord profile over local IPC.
-- **Mini Player Mode**: Frameless, always-on-top compact window with seek bar, volume slider, lyrics toggle, and an upcoming queue view.
-- **Themes and Accent Customization**: Switch between **Dark**, **Light**, **Nord**, and **Dracula** themes with customizable accent colors (Orange, Green, Blue, Purple, Crimson, and more).
-- **Fast Navigation and Batch Controls**: Browse by Songs, Albums, Artists, or Playlists; jump alphabetically with the Section Jump Picker (`&`, `#`, `A-Z`); and select multiple tracks for batch playback.
-- **Multi-Column Properties Inspector**: View song metadata alongside audio encoding details (format, bitrate, sample rate, channels, size, and modified timestamp) side by side.
-- **Playlist Persistence**: Create and manage playlists stored in standard M3U8 format.
+- **Pure Rust Audio Engine & Biquad EQ**: Decodes `MP3`, `FLAC`, `WAV`, `M4A / AAC / ALAC`, `OGG Vorbis`, `Opus`, `AIFF`, and `WavPack` via `rodio` + `symphonia` with selectable WASAPI output devices and a real-time 10-band RBJ biquad equalizer + preamp.
+- **Word-Synced & Online Lyrics**: Loads local `.ttml`, `.krc`, `.lrc`, `.txt`, and embedded lyrics, or fetches automatically from **LRCLIB**, **NetEase**, and **Kugou** (with KRC decryption for syllable timing) plus offline Japanese Kana/Kanji and Korean Hangul romanization.
+- **Per-Track Lyrics Offset**: Stores individual timing adjustments per song in SQLite with direct text editing and `-0.1s` / `+0.1s` controls.
+- **Fast Library & Batch Workflow**: Parallel metadata/artwork indexer with SQLite WAL persistence, automatic folder watching, virtualized song list with `A-Z` jump rail, multi-select batch play/queue actions, `.m3u8` import/export, and tag + technical properties editor.
+- **Desktop Integrations**: Windows SMTC media controls with lock-screen artwork, frameless always-on-top MiniPlayer, multi-theme Obsidian + Warm Zest palette with adaptive cover accent, and Discord Rich Presence (`Listening` activity with live cover lookup).
 
 ---
 
@@ -54,47 +38,45 @@
 
 | Component | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Language & Runtime** | Java 17+ (JDK 21 / 25) | Core application logic and NIO file scanning |
-| **GUI & Audio Engine** | JavaFX 21 (`controls`, `fxml`, `media`) | User interface rendering and media playback |
-| **UI Styling** | AtlantaFX 2.0.1 | Base theme foundation and custom CSS stylesheets |
-| **Vector Icons** | Ikonli (`materialdesign2`) | Material Design icons across player controls and menus |
-| **Metadata Parser** | JAudioTagger 3.0.1 | ID3 tag extraction, embedded cover art, and audio technical info |
-| **Discord Integration** | Discord RPC (IPC / Named Pipes) | Real-time status updates with the desktop Discord client |
-| **Windows Packaging** | `jpackage` & Inno Setup 6 | Self-contained Windows installer (`Localify-Setup-1.0.exe`) |
+| **Backend Runtime** | Rust + Tauri 2 | Single-binary Windows host, SQLite index, filesystem watcher |
+| **Audio & DSP** | `rodio` + `symphonia` + `cpal` | Zero-DLL audio decoding, sample-accurate clock, 10-band biquad EQ |
+| **Frontend UI** | TypeScript + Svelte 5 + Vite | Reactive state, virtualized song lists, SVG EQ curve, word-sweep lyrics |
+| **Metadata & Covers** | `lofty` + `image` | Tag reading/writing, thumbnail caching, adaptive artwork accent |
+| **Desktop Hooks** | `souvlaki` + Windows Named Pipes | Windows SMTC transport controls and Discord Rich Presence IPC |
+| **Packaging** | Tauri + Inno Setup 6 | Compact Windows installer (`Localify-Setup-1.0.exe`) |
 
 ---
 
 ## Build and Installation
 
 ### Prerequisites
-- **JDK 17 or newer** (JDK 21 LTS recommended)
-- Git
+- **Rust** (`rustup` / `cargo`)
+- **Node.js 20+** and **npm**
+- **WebView2 Runtime** (pre-installed on Windows 10/11)
 
 ### 1. Run in Development Mode
 ```bash
-# Clone the repository
-git clone https://github.com/Alfiannr234/localify.git
-cd localify
-
-# Run using the Maven Wrapper
-.\mvnw.cmd clean javafx:run
+npm install
+npm run dev
+```
+Or launch full Tauri desktop development window:
+```bash
+npm run tauri dev
 ```
 
-### 2. Build Shaded Executable JAR
+### 2. Run Checks and Tests
 ```bash
-.\mvnw.cmd clean package -DskipTests
+npm run check
+npm test
+cargo test --manifest-path src-tauri/Cargo.toml
 ```
-The compiled shaded JAR is output to `target/localify-player-1.0.jar`.
 
-### 3. Build Windows Installer (.exe)
-Run the automated build script to compile the JAR, create the `jpackage` app-image, and package the Inno Setup installer:
+### 3. Build Release Binary & Windows Installer
 ```bash
+npm run tauri build -- --no-bundle
 .\build-installer.bat
 ```
-The generated installer is placed at `dist/installer/Localify-Setup-1.0.exe`.
-
-### 4. Fast In-Place Update (Installed App)
-If Localify is already installed locally and you want to update the JAR and executable without reinstalling:
+For in-place updates of `%LOCALAPPDATA%\Programs\Localify`:
 ```bash
 .\update-installed-app.bat
 ```
@@ -105,32 +87,19 @@ If Localify is already installed locally and you want to update the JAR and exec
 
 ```text
 localify/
-├── .mvn/                             # Maven wrapper configuration
-├── src/
-│   ├── main/
-│   │   ├── java/com/localify/
-│   │   │   ├── App.java              # JavaFX application entry point
-│   │   │   ├── controller/           # FXML controllers (Main, MiniPlayer, ContextMenu)
-│   │   │   ├── model/                # Data models (Track, LyricLine, Playlist)
-│   │   │   └── service/              # Core services (Audio, Scanner, LrcParser, Discord, Theme)
-│   │   └── resources/com/localify/
-│   │       ├── css/                  # Application themes (spotify-dark.css)
-│   │       ├── fxml/                 # UI layouts (main-view.fxml, mini-player.fxml)
-│   │       └── images/               # Multi-resolution application icons
-│   └── test/                         # UI and service smoke verification runner
-├── Screenshot 2026-11-12 065518.png  # Application library view screenshot
-├── build-installer.bat               # Build script for JAR, app-image, and installer
-├── update-installed-app.bat          # In-place update script for installed builds
-├── localify-installer.iss            # Inno Setup installer configuration
-├── localify.ico                      # Multi-resolution Windows icon
-├── localify.png                      # High-resolution application logo
-├── LICENSE                           # MIT License
-├── pom.xml                           # Maven project configuration
-└── README.md                         # Project documentation
+├── DESIGN.md                 # Visual tokens, contrast palette, and layout guidelines
+├── src/                      # TypeScript & Svelte 5 frontend (views, components, stores, tests)
+├── src-tauri/                # Rust backend (audio engine, DB, scanner, lyrics, SMTC, Discord RPC)
+├── scripts/                  # SVG icon bundler
+├── build-installer.bat       # Build release executable + Inno Setup installer
+├── update-installed-app.bat  # In-place update for installed Localify binary
+├── localify-installer.iss    # Inno Setup script
+├── localify.ico              # Multi-resolution Windows icon
+└── localify.png              # Application logo
 ```
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).

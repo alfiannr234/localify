@@ -358,8 +358,8 @@ class PlayerStore {
         width: Math.round(size.width / sf),
         height: Math.round(size.height / sf),
       };
-      await win.setMinSize(new LogicalSize(340, 148));
-      await win.setSize(new LogicalSize(380, 168));
+      await win.setMinSize(new LogicalSize(240, 132));
+      await win.setSize(new LogicalSize(268, 140));
       await win.setDecorations(false);
       await win.setAlwaysOnTop(true);
       this.miniMode = true;

@@ -42,7 +42,8 @@ class LyricsStore {
       if (reqId !== this.reqCounter) return;
       this.trackOffset = savedOffset ?? settings.defaultOffset;
 
-      if (local && local.source === 'cache') {
+      const firstEnabled = settings.lyricsSources.find((s) => s.on)?.id;
+      if (local && (local.source === 'cache' || firstEnabled === 'local')) {
         this.applyResult(local.source, local.format, local.content);
         this.loading = false;
         return;

@@ -10,6 +10,7 @@ import {
 import { parseLookup, type WordLookup } from './lookup';
 import { lyricsStore } from './lyrics.svelte';
 import { player } from './player.svelte';
+import { needsRomanization, romanizeText } from './romanize';
 import { library } from './library.svelte';
 import { translateStore } from './translate.svelte';
 import { reviewVocab, vocabId, type VocabItem } from './vocab';
@@ -136,6 +137,8 @@ class LearnStore {
     if (isJp) {
       this.updateRomajiLines(built);
       void this.hydrateJapaneseReadings(mine, built);
+    } else if (lines.some(needsRomanization)) {
+      this.romajiLines = lines.map((line) => (needsRomanization(line) ? romanizeText(line) : ''));
     }
   }
 

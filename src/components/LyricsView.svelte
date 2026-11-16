@@ -25,7 +25,11 @@
   let searchOpen = $state(false);
 
   let learning = $derived(settings.learnLyrics && Boolean(learnStore.pieces));
-  let withSub = $derived(learning || (settings.translateLyrics && Boolean(translateStore.lines?.length)));
+  let withSub = $derived(
+    learning ||
+      (settings.translateLyrics && Boolean(translateStore.lines?.length)) ||
+      (settings.romanizeLyrics && lyricsStore.hasRomanizable)
+  );
   let gapStart = $derived.by(() => {
     const idx = active.lineIndex;
     const lines = lyricsStore.lines;
@@ -121,6 +125,22 @@
               <option value={code}>{label}</option>
             {/each}
           </select>
+        {/if}
+
+        {#if lyricsStore.hasRomanizable && !learning}
+          <button
+            type="button"
+            class="tool-chip"
+            class:on={settings.romanizeLyrics}
+            aria-pressed={settings.romanizeLyrics}
+            title="Show or hide offline romanization"
+            onclick={() => {
+              settings.romanizeLyrics = !settings.romanizeLyrics;
+              settings.save('romanize_lyrics', String(settings.romanizeLyrics));
+            }}
+          >
+            Romaji
+          </button>
         {/if}
 
         {#if lyricsStore.lines.length > 0}
@@ -320,10 +340,11 @@
                 {/if}
               </span>
 
+              {#if settings.romanizeLyrics && lyricsStore.romanizedLines[idx]}
+                <span class="ro">{lyricsStore.romanizedLines[idx]}</span>
+              {/if}
               {#if translateStore.lines?.[idx]}
                 <span class="tr">({translateStore.lines[idx]})</span>
-              {:else if settings.romanizeLyrics && lyricsStore.romanizedLines[idx] && !learnStore.japanese}
-                <span class="ro">{lyricsStore.romanizedLines[idx]}</span>
               {/if}
             </button>
 
@@ -401,6 +422,39 @@
   .backdrop .icon-tool.on {
     color: #fff;
     background: rgba(255, 255, 255, 0.2);
+  }
+  .tool-chip {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 11.5px;
+    font-weight: 600;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+  .tool-chip:hover {
+    background: rgba(130, 140, 160, 0.18);
+    color: var(--text);
+  }
+  .tool-chip.on {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .backdrop .tool-chip {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .backdrop .tool-chip:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+  .backdrop .tool-chip.on {
+    border-color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
   }
   .lang-pick {
     height: 28px;
@@ -628,7 +682,15 @@
     margin-top: 3px;
     font-size: 12.5px;
     font-weight: 500;
-    opacity: 0.72;
+    opacity: 0.78;
+  }
+  .line.on .ro {
+    color: var(--accent);
+    opacity: 1;
+  }
+  .backdrop .line.on .ro {
+    color: rgba(255, 255, 255, 0.9);
+    opacity: 1;
   }
   .learning .line {
     filter: none;

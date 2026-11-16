@@ -160,7 +160,14 @@ pub fn fetch_from_provider(
         let sb = score_candidate(b, &clean_title, &clean_artist, duration);
         sb.partial_cmp(&sa).unwrap_or(std::cmp::Ordering::Equal)
     });
-    cands.into_iter().next()
+    let best = cands.into_iter().next()?;
+    if duration > 5.0 && best.duration > 5.0 && (duration - best.duration).abs() > 25.0 {
+        return None;
+    }
+    if score_candidate(&best, &clean_title, &clean_artist, duration) < 35.0 {
+        return None;
+    }
+    Some(best)
 }
 
 fn score_candidate(c: &OnlineLyricsCandidate, title: &str, artist: &str, duration: f64) -> f64 {

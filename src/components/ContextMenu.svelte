@@ -1,12 +1,24 @@
 <script lang="ts">
+  import { open } from '@tauri-apps/plugin-dialog';
   import { api } from '../lib/api';
   import { library } from '../lib/library.svelte';
+  import { lyricsStore } from '../lib/lyrics.svelte';
   import { menuStore } from '../lib/menu.svelte';
   import { player } from '../lib/player.svelte';
   import Icon from './Icon.svelte';
 
   let menu = $derived(menuStore.state);
   let showPlaylists = $state(false);
+
+  async function pickLyricsForTrack(trackPath: string): Promise<void> {
+    menuStore.close();
+    const picked = await open({
+      multiple: false,
+      filters: [{ name: 'Lyrics files', extensions: ['lrc', 'ttml', 'krc', 'txt'] }],
+    });
+    if (!picked || Array.isArray(picked)) return;
+    await lyricsStore.assignCustomFile(trackPath, picked);
+  }
 </script>
 
 <svelte:window
@@ -126,6 +138,15 @@
       >
         <Icon name="edit" size={15} />
         <span>Edit tags & file info</span>
+      </button>
+
+      <button
+        type="button"
+        class="ctx-item"
+        onclick={() => void pickLyricsForTrack(first.path)}
+      >
+        <Icon name="file-text" size={15} />
+        <span>Load lyrics file (.lrc)...</span>
       </button>
 
       <button

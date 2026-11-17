@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { open } from '@tauri-apps/plugin-dialog';
   import { buildFurigana } from '../lib/kana';
   import { learnStore } from '../lib/learn.svelte';
   import { lyricsStore } from '../lib/lyrics.svelte';
@@ -101,6 +102,22 @@
       await lyricsStore.searchManual(track);
     }
   }
+
+  async function pickLocalLyrics(): Promise<void> {
+    if (!track) return;
+    const picked = await open({
+      multiple: false,
+      filters: [{ name: 'Lyrics files', extensions: ['lrc', 'ttml', 'krc', 'txt'] }],
+    });
+    if (!picked || Array.isArray(picked)) return;
+    await lyricsStore.assignCustomFile(track.path, picked);
+    searchOpen = false;
+  }
+
+  async function refreshLyrics(): Promise<void> {
+    if (!track) return;
+    await lyricsStore.refreshOnline(track);
+  }
 </script>
 
 <div
@@ -175,8 +192,8 @@
           type="button"
           class="icon-tool"
           class:on={searchOpen}
-          aria-label="Choose online lyrics version"
-          title="Search online lyrics versions"
+          aria-label="Choose local or online lyrics"
+          title="Choose local (.lrc) or online lyrics"
           onclick={toggleVersions}
         >
           <Icon name="search" size={16} />
@@ -200,14 +217,24 @@
   {#if searchOpen && track}
     <div class="cand-overlay scroll-thin">
       <div class="cand-head">
-        <span>Online Lyrics Versions</span>
+        <span>Choose Lyrics</span>
         <button
           type="button"
           class="btn-icon tiny"
-          aria-label="Close search"
+          aria-label="Close lyrics chooser"
           onclick={() => (searchOpen = false)}
         >
           <Icon name="close" size={14} />
+        </button>
+      </div>
+      <div class="cand-actions">
+        <button type="button" class="cand-action-btn" onclick={pickLocalLyrics}>
+          <Icon name="folder" size={14} />
+          <span>Load .lrc / local file</span>
+        </button>
+        <button type="button" class="cand-action-btn" onclick={refreshLyrics}>
+          <Icon name="refresh" size={14} />
+          <span>Re-fetch online</span>
         </button>
       </div>
       {#if lyricsStore.searching}
@@ -254,7 +281,10 @@
       {:else if lyricsStore.lines.length === 0}
         <div class="empty-msg">
           <p>No lyrics available for this song.</p>
-          <button type="button" class="search-pill" onclick={toggleVersions}>Search Online</button>
+          <div class="empty-actions">
+            <button type="button" class="search-pill" onclick={pickLocalLyrics}>Load .lrc / Local File</button>
+            <button type="button" class="search-pill" onclick={toggleVersions}>Search Online</button>
+          </div>
         </div>
       {:else}
         <div class="spacer top"></div>
@@ -541,6 +571,36 @@
     font-size: 12px;
     font-weight: 600;
   }
+  .cand-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .cand-action-btn {
+    flex: 1 1 auto;
+    min-height: 30px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .cand-action-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+  .cand-action-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   .cand-msg {
     font-size: 12.5px;
     opacity: 0.7;
@@ -747,6 +807,12 @@
     align-items: center;
     gap: 10px;
   }
+  .empty-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
   .search-pill {
     border: none;
     border-radius: 999px;
@@ -756,5 +822,14 @@
     color: inherit;
     font-size: 12.5px;
     font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .search-pill:hover {
+    background: rgba(255, 255, 255, 0.24);
+  }
+  .search-pill:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 </style>

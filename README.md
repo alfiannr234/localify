@@ -103,6 +103,14 @@ localify/
 
 ---
 
+## Credits & Acknowledgments
+
+- Inspired by [Qistara](https://github.com/Schongli/Qistara) by [@Schongli](https://github.com/Schongli) for its lightweight TypeScript + Rust architecture, clean borderless lyrics presentation, word-synced lyrics, Learn mode, Qur'an recitation sync, and integrated Downloads workflow.
+- Lyrics & metadata services: [LRCLIB](https://lrclib.net), NetEase, Kugou, and [Navidrome / Subsonic](https://www.navidrome.org/).
+- Media download tooling: [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [FFmpeg](https://ffmpeg.org/).
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

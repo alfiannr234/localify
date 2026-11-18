@@ -55,26 +55,36 @@ class TranslateStore {
       if (!cached) {
         const dict: Record<string, string> = {};
         let detected = '';
-        for (const chunk of batchTexts(uniq)) {
-          const raw = await api.googleTranslate(chunk.join('\n'), 'auto', tl, false);
+        const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+        const translateChunk = async (items: string[]): Promise<void> => {
+          if (id !== this.reqId || items.length === 0) return;
+          const raw = await api.googleTranslate(items.join('\n'), 'auto', tl, false);
           const parsed = parseGtx(JSON.parse(raw));
           if (!detected) detected = parsed.source;
-          let aligned = alignTranslatedLines(chunk, parsed.text);
-          if (!aligned) {
-            aligned = [];
-            for (const single of chunk) {
-              try {
-                const singleRaw = await api.googleTranslate(single, 'auto', tl, false);
-                aligned.push(parseGtx(JSON.parse(singleRaw)).text.trim());
-              } catch {
-                aligned.push('');
-              }
-            }
+          const aligned = alignTranslatedLines(items, parsed.text);
+          if (aligned) {
+            items.forEach((orig, idx) => {
+              const val = aligned[idx] ?? '';
+              if (val) dict[orig] = val;
+            });
+            return;
           }
-          chunk.forEach((orig, idx) => {
-            const val = aligned![idx] ?? '';
-            if (val) dict[orig] = val;
-          });
+          if (items.length === 1) {
+            const val = parsed.text.trim();
+            if (val) dict[items[0]] = val;
+            return;
+          }
+          const mid = Math.ceil(items.length / 2);
+          await translateChunk(items.slice(0, mid));
+          await sleep(180);
+          await translateChunk(items.slice(mid));
+        };
+
+        const chunks = batchTexts(uniq);
+        for (let i = 0; i < chunks.length; i++) {
+          if (id !== this.reqId) return;
+          if (i > 0) await sleep(180);
+          await translateChunk(chunks[i]);
         }
         cached = { source: detected, dict };
         if (Object.keys(dict).length > 0) {
